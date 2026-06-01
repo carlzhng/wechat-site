@@ -24,7 +24,7 @@ const els = {
 };
 
 function formatPrice(price, currency = 'USD') {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('zh-CN', {
     style: 'currency',
     currency,
   }).format(price);
@@ -45,7 +45,7 @@ function getProduct(id) {
 function showLoading() {
   els.productsGrid.innerHTML = `
     <div class="empty-state">
-      <p>Loading store...</p>
+      <p>正在加载店铺…</p>
     </div>
   `;
 }
@@ -53,7 +53,7 @@ function showLoading() {
 function showError() {
   els.productsGrid.innerHTML = `
     <div class="empty-state">
-      <p>Could not load the store. Please try again later.</p>
+      <p>店铺加载失败，请稍后再试。</p>
     </div>
   `;
 }
@@ -115,16 +115,16 @@ function createSlideshow(images, { compact = false } = {}) {
 
   const dots =
     images.length > 1
-      ? `<div class="slide-dots">${images.map((_, i) => `<button class="slide-dot ${i === 0 ? 'active' : ''}" data-index="${i}" aria-label="View image ${i + 1}" type="button"></button>`).join('')}</div>`
+      ? `<div class="slide-dots">${images.map((_, i) => `<button class="slide-dot ${i === 0 ? 'active' : ''}" data-index="${i}" aria-label="查看第 ${i + 1} 张图片" type="button"></button>`).join('')}</div>`
       : '';
 
   const nav =
     images.length > 1
       ? `
-    <button class="slide-btn slide-prev" aria-label="Previous image" type="button">
+    <button class="slide-btn slide-prev" aria-label="上一张图片" type="button">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
-    <button class="slide-btn slide-next" aria-label="Next image" type="button">
+    <button class="slide-btn slide-next" aria-label="下一张图片" type="button">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
     </button>
   `
@@ -225,7 +225,7 @@ function renderProducts() {
   if (items.length === 0) {
     els.productsGrid.innerHTML = `
       <div class="empty-state">
-        <p>No items in this section yet.</p>
+        <p>该分类暂无商品。</p>
       </div>
     `;
     return;
@@ -236,7 +236,7 @@ function renderProducts() {
       const imgs = product.images?.length ? product.images : [];
       const { html } = imgs.length
         ? createSlideshow(imgs, { compact: true })
-        : { html: '<div class="no-image-placeholder">No photo</div>' };
+        : { html: '<div class="no-image-placeholder">暂无图片</div>' };
       return `
       <article class="product-card" data-product="${product.id}">
         <div class="product-card-media">${html}</div>
@@ -244,7 +244,7 @@ function renderProducts() {
           <h3 class="product-name">${product.name}</h3>
           <p class="product-price">${formatPrice(product.price, product.currency)}</p>
           <button class="view-details-btn" data-product="${product.id}" type="button">
-            View details
+            查看详情
           </button>
         </div>
       </article>
@@ -287,7 +287,7 @@ function openProductModal(productId) {
   const imgs = product.images?.length ? product.images : [];
   const slideshowHtml = imgs.length
     ? createSlideshow(imgs).html
-    : '<div class="no-image-placeholder large">No photo</div>';
+    : '<div class="no-image-placeholder large">暂无图片</div>';
 
   els.modalContent.innerHTML = `
     <div class="modal-slideshow-wrap">${slideshowHtml}</div>
@@ -300,7 +300,7 @@ function openProductModal(productId) {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
         </svg>
-        <span>For ordering, please contact us directly via WeChat.</span>
+        <span>下单请直接微信联系。</span>
       </div>
     </div>
   `;
