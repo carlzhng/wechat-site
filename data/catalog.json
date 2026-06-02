@@ -2,171 +2,22 @@
   "categories": [
     {
       "id": "clothing-apparel",
-      "name": "Clothing & Apparel",
+      "name": "服装与服饰",
       "icon": "👕",
-      "description": "Fashion, accessories, and everyday wear"
+      "description": "时尚穿搭、配饰与日常服装"
     },
     {
       "id": "snacks-food",
-      "name": "Snacks & Food",
+      "name": "零食与食品",
       "icon": "🍜",
-      "description": "Treats, pantry staples, and specialty foods"
+      "description": "零食、日常食品与特色美味"
     },
     {
       "id": "health-beauty",
-      "name": "Health & Beauty",
+      "name": "健康与美妆",
       "icon": "✨",
-      "description": "Skincare, wellness, and personal care"
+      "description": "护肤、健康与个人护理"
     }
   ],
-  "products": [
-    {
-      "id": "c1",
-      "categoryId": "clothing-apparel",
-      "name": "Classic Linen Shirt",
-      "price": 48,
-      "currency": "USD",
-      "description": "Lightweight breathable linen in a relaxed fit. Perfect for warm days and easy layering.",
-      "images": [
-        "https://images.unsplash.com/photo-1596755094514-f87e34085b56?w=800&q=80",
-        "https://images.unsplash.com/photo-1622445275463-afa2ab738c34?w=800&q=80",
-        "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=800&q=80"
-      ]
-    },
-    {
-      "id": "c2",
-      "categoryId": "clothing-apparel",
-      "name": "High-Rise Denim Jeans",
-      "price": 72,
-      "currency": "USD",
-      "description": "Soft stretch denim with a flattering high-rise waist and tapered leg.",
-      "images": [
-        "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80",
-        "https://images.unsplash.com/photo-1475178626620-a4d895989174?w=800&q=80"
-      ]
-    },
-    {
-      "id": "c3",
-      "categoryId": "clothing-apparel",
-      "name": "Wool Blend Coat",
-      "price": 189,
-      "currency": "USD",
-      "description": "Structured mid-length coat with notched lapels. Warm without bulk.",
-      "images": [
-        "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=800&q=80",
-        "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=800&q=80",
-        "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800&q=80"
-      ]
-    },
-    {
-      "id": "c4",
-      "categoryId": "clothing-apparel",
-      "name": "Canvas Tote Bag",
-      "price": 32,
-      "currency": "USD",
-      "description": "Durable everyday tote with interior pocket. Holds laptops up to 13\".",
-      "images": [
-        "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=800&q=80",
-        "https://images.unsplash.com/photo-1548036327-c9fa89d128dc?w=800&q=80"
-      ]
-    },
-    {
-      "id": "s1",
-      "categoryId": "snacks-food",
-      "name": "Matcha White Chocolate Bar",
-      "price": 8.5,
-      "currency": "USD",
-      "description": "Ceremonial-grade matcha blended into creamy white chocolate. 85g bar.",
-      "images": [
-        "https://images.unsplash.com/photo-1511381939415-e44015466834?w=800&q=80",
-        "https://images.unsplash.com/photo-1606312619070-d48b4cbc1228?w=800&q=80"
-      ]
-    },
-    {
-      "id": "s2",
-      "categoryId": "snacks-food",
-      "name": "Assorted Rice Crackers",
-      "price": 12,
-      "currency": "USD",
-      "description": "Crispy senbei assortment — soy, seaweed, and black sesame. 200g pack.",
-      "images": [
-        "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=800&q=80",
-        "https://images.unsplash.com/photo-1621939514649-280e2ee68152?w=800&q=80",
-        "https://images.unsplash.com/photo-1601050690597-df0568fa7098?w=800&q=80"
-      ]
-    },
-    {
-      "id": "s3",
-      "categoryId": "snacks-food",
-      "name": "Cold Brew Coffee Concentrate",
-      "price": 18,
-      "currency": "USD",
-      "description": "Small-batch cold brew. Dilute 1:1 with water or milk. Makes 8 cups.",
-      "images": [
-        "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=800&q=80",
-        "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80"
-      ]
-    },
-    {
-      "id": "s4",
-      "categoryId": "snacks-food",
-      "name": "Dried Mango Slices",
-      "price": 9,
-      "currency": "USD",
-      "description": "Naturally sweet Philippine mango. No added sugar. 150g resealable pouch.",
-      "images": [
-        "https://images.unsplash.com/photo-1605027990121-475fd9909792?w=800&q=80",
-        "https://images.unsplash.com/photo-1559186187-42f548d1760a?w=800&q=80"
-      ]
-    },
-    {
-      "id": "h1",
-      "categoryId": "health-beauty",
-      "name": "Hydrating Face Serum",
-      "price": 36,
-      "currency": "USD",
-      "description": "Hyaluronic acid and niacinamide serum. Lightweight, fragrance-free. 30ml.",
-      "images": [
-        "https://images.unsplash.com/photo-1620916565428-75f4bfc38df7?w=800&q=80",
-        "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800&q=80",
-        "https://images.unsplash.com/photo-1570194065650-d99fb4b3c1a2?w=800&q=80"
-      ]
-    },
-    {
-      "id": "h2",
-      "categoryId": "health-beauty",
-      "name": "Bamboo Toothbrush Set",
-      "price": 14,
-      "currency": "USD",
-      "description": "Pack of 4 biodegradable bamboo toothbrushes with soft bristles.",
-      "images": [
-        "https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?w=800&q=80",
-        "https://images.unsplash.com/photo-1559591930-7d5b1d4e4b2e?w=800&q=80"
-      ]
-    },
-    {
-      "id": "h3",
-      "categoryId": "health-beauty",
-      "name": "Lavender Bath Salts",
-      "price": 22,
-      "currency": "USD",
-      "description": "Epsom and sea salt blend with essential oils. 500g glass jar.",
-      "images": [
-        "https://images.unsplash.com/photo-1608571423902-eed4a632ad0b?w=800&q=80",
-        "https://images.unsplash.com/photo-1596755389378-cb1247993577?w=800&q=80"
-      ]
-    },
-    {
-      "id": "h4",
-      "categoryId": "health-beauty",
-      "name": "Daily Multivitamin",
-      "price": 28,
-      "currency": "USD",
-      "description": "Complete daily formula with vitamins A–E, zinc, and iron. 60 capsules.",
-      "images": [
-        "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&q=80",
-        "https://images.unsplash.com/photo-1550572017-edd951aaee8f?w=800&q=80"
-      ]
-    }
-  ]
+  "products": []
 }

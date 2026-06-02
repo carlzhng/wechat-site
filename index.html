@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -9,7 +9,7 @@
     <meta name="format-detection" content="telephone=no" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <title>Our Store</title>
+    <title>店铺</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -24,19 +24,19 @@
       <div class="sidebar-overlay" id="sidebar-overlay" aria-hidden="true"></div>
 
       <!-- Sidebar -->
-      <aside class="sidebar" id="sidebar" aria-label="Store categories">
+      <aside class="sidebar" id="sidebar" aria-label="店铺分类">
         <div class="sidebar-header">
           <div class="store-brand">
             <span class="store-logo" aria-hidden="true">🛍</span>
             <div>
-              <h1 class="store-name">Our Store</h1>
-              <p class="store-tagline">Browse our collection</p>
+              <h1 class="store-name">加拿大优选生活馆</h1>
+              <p class="store-tagline">浏览商品</p>
             </div>
           </div>
           <button
             class="sidebar-close"
             id="sidebar-close"
-            aria-label="Close menu"
+            aria-label="关闭菜单"
             type="button"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -49,8 +49,8 @@
 
         <div class="sidebar-footer">
           <p class="browse-notice">
-            This is a catalog for browsing only.<br />
-            Contact us to place an order.
+            本网站仅供浏览展示。<br />
+            下单请联系微信。
           </p>
         </div>
       </aside>
@@ -61,7 +61,7 @@
           <button
             class="menu-btn"
             id="menu-btn"
-            aria-label="Open menu"
+            aria-label="打开菜单"
             aria-expanded="false"
             type="button"
           >
@@ -69,9 +69,17 @@
               <path d="M3 12h18M3 6h18M3 18h18" />
             </svg>
           </button>
-          <div class="topbar-title" id="topbar-title">Clothing & Apparel</div>
+          <div class="topbar-title" id="topbar-title">加拿大优选生活馆 | Lululemon | Coach | Fossil | Canada Goose | Arc'teryx | Michael Kors</div>
           <div class="topbar-spacer"></div>
         </header>
+
+        <section class="brand-gallery" aria-label="精选服饰品牌">
+          <div class="brand-gallery-track" id="brand-gallery-track"></div>
+        </section>
+
+        <section class="brand-gallery brand-gallery--health" aria-label="精选健康美妆品牌">
+          <div class="brand-gallery-track brand-gallery-track--ltr" id="health-brand-gallery-track"></div>
+        </section>
 
         <section class="category-hero" id="category-hero"></section>
 
@@ -84,7 +92,7 @@
       <div class="modal" id="product-modal" aria-hidden="true" role="dialog" aria-modal="true">
         <div class="modal-backdrop" id="modal-backdrop"></div>
         <div class="modal-panel">
-          <button class="modal-close" id="modal-close" aria-label="Close product details" type="button">
+          <button class="modal-close" id="modal-close" aria-label="关闭商品详情" type="button">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>

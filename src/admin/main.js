@@ -47,7 +47,7 @@ const els = {
 };
 
 function formatPrice(price) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price);
+  return new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY' }).format(price);
 }
 
 function showToast(message) {
@@ -94,12 +94,12 @@ function filteredProducts() {
 }
 
 function getCategoryName(id) {
-  return state.categories.find((c) => c.id === id)?.name ?? 'Unknown';
+  return state.categories.find((c) => c.id === id)?.name ?? '未知分类';
 }
 
 function renderCategoryTabs() {
   const tabs = [
-    { id: 'all', name: 'All Items', icon: '📦' },
+    { id: 'all', name: '全部商品', icon: '📦' },
     ...state.categories.map((c) => ({ id: c.id, name: c.name, icon: c.icon })),
   ];
 
@@ -132,8 +132,8 @@ function renderProductList() {
   if (items.length === 0) {
     els.productList.innerHTML = `
       <div class="empty-list">
-        <p>No items here yet.</p>
-        <button class="btn btn-primary" type="button" id="empty-add-btn">+ Add Your First Item</button>
+        <p>这里还没有商品。</p>
+        <button class="btn btn-primary" type="button" id="empty-add-btn">+ 添加第一件商品</button>
       </div>
     `;
     document.getElementById('empty-add-btn')?.addEventListener('click', () => openEditor());
@@ -144,7 +144,7 @@ function renderProductList() {
     .map((product) => {
       const thumb = product.images[0]
         ? `<img src="${product.images[0]}" alt="" />`
-        : `<div class="no-photo">No photo</div>`;
+        : `<div class="no-photo">暂无图片</div>`;
       return `
       <article class="admin-product-card">
         <div class="admin-product-thumb">${thumb}</div>
@@ -152,11 +152,11 @@ function renderProductList() {
           <p class="admin-product-section">${getCategoryName(product.categoryId)}</p>
           <h3>${product.name}</h3>
           <p class="admin-product-price">${formatPrice(product.price)}</p>
-          <p class="admin-product-desc">${product.description || 'No description'}</p>
-          <p class="admin-product-photos">${product.images.length} photo${product.images.length === 1 ? '' : 's'}</p>
+          <p class="admin-product-desc">${product.description || '暂无描述'}</p>
+          <p class="admin-product-photos">${product.images.length} 张图片</p>
         </div>
         <button class="btn btn-secondary edit-product-btn" data-id="${product.id}" type="button">
-          Edit
+          编辑
         </button>
       </article>
     `;
@@ -208,7 +208,7 @@ function openEditor(productId = null) {
   if (productId) {
     const product = state.products.find((p) => p.id === productId);
     if (!product) return;
-    els.editTitle.textContent = 'Edit Item';
+    els.editTitle.textContent = '编辑商品';
     els.itemName.value = product.name;
     els.itemCategory.value = product.categoryId;
     els.itemPrice.value = product.price;
@@ -216,7 +216,7 @@ function openEditor(productId = null) {
     state.draftImages = [...product.images];
     els.deleteBtn.hidden = false;
   } else {
-    els.editTitle.textContent = 'Add New Item';
+    els.editTitle.textContent = '新增商品';
     els.editForm.reset();
     els.itemCategory.value =
       state.activeCategory !== 'all' ? state.activeCategory : state.categories[0]?.id ?? '';
@@ -264,20 +264,20 @@ async function handleSave(e) {
     price: parseFloat(els.itemPrice.value),
     description: els.itemDescription.value,
     images: state.draftImages,
-    currency: 'USD',
+    currency: 'CNY',
   };
 
   state.saving = true;
   els.saveBtn.disabled = true;
-  els.saveBtn.textContent = 'Saving...';
+  els.saveBtn.textContent = '正在保存…';
 
   try {
     if (state.editingId) {
       await updateProduct(state.editingId, payload);
-      showToast('Item updated! Customers can see the changes now.');
+      showToast('已更新商品，顾客现在就能看到。');
     } else {
       await createProduct(payload);
-      showToast('New item added to your store!');
+      showToast('已新增商品！');
     }
     await loadCatalog();
     closeEditor();
@@ -286,7 +286,7 @@ async function handleSave(e) {
   } finally {
     state.saving = false;
     els.saveBtn.disabled = false;
-    els.saveBtn.textContent = 'Save Item';
+    els.saveBtn.textContent = '保存';
   }
 }
 
@@ -296,13 +296,13 @@ async function handleDelete() {
   if (!product) return;
 
   const confirmed = window.confirm(
-    `Remove "${product.name}" from the store?\n\nThis cannot be undone.`
+    `确定要删除“${product.name}”吗？\n\n删除后无法恢复。`
   );
   if (!confirmed) return;
 
   try {
     await deleteProduct(state.editingId);
-    showToast('Item removed from your store.');
+    showToast('已删除商品。');
     await loadCatalog();
     closeEditor();
   } catch (err) {
@@ -314,7 +314,7 @@ async function init() {
   if (window.location.protocol === 'file:') {
     showError(
       els.loginError,
-      'Open http://localhost:3000/admin.html instead of the file on your computer. Run npm run dev first.'
+      '请打开 http://localhost:3000/admin.html（不要直接打开本地文件）。请先运行 npm run dev。'
     );
     els.loginForm.querySelector('button[type="submit"]').disabled = true;
   }
@@ -335,12 +335,12 @@ async function init() {
     const password = passwordInput.value.trim();
 
     if (!password) {
-      showError(els.loginError, 'Please enter your password.');
+      showError(els.loginError, '请输入密码。');
       return;
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Signing in...';
+    submitBtn.textContent = '正在登录…';
 
     try {
       await login(password);
@@ -351,7 +351,7 @@ async function init() {
       showError(els.loginError, err.message);
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Sign In';
+      submitBtn.textContent = '登录';
     }
   });
 

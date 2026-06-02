@@ -269,6 +269,146 @@ button {
   width: 44px;
 }
 
+/* ── Brand gallery marquee ── */
+
+.brand-gallery {
+  overflow: hidden;
+  background: var(--color-sidebar);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 14px 0;
+}
+
+.brand-gallery-track {
+  display: flex;
+  gap: 12px;
+  width: max-content;
+  animation: brand-gallery-scroll 40s linear infinite;
+}
+
+.brand-gallery-track:hover {
+  animation-play-state: paused;
+}
+
+.brand-gallery-item {
+  position: relative;
+  flex-shrink: 0;
+  width: 140px;
+  height: 100px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+.brand-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.brand-gallery-label {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 6px 8px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.65));
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes brand-gallery-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.brand-gallery-track--ltr {
+  animation-name: brand-gallery-scroll-ltr;
+}
+
+@keyframes brand-gallery-scroll-ltr {
+  from {
+    transform: translateX(var(--marquee-shift, -16.666%));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.brand-gallery--health {
+  background: linear-gradient(135deg, #2d4a3e 0%, #1a2e28 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 0;
+}
+
+.brand-gallery--health .brand-gallery-track {
+  gap: 8px;
+}
+
+.brand-gallery--health .brand-gallery-item {
+  width: 96px;
+  height: 68px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.2);
+}
+
+.brand-gallery--health .brand-gallery-label {
+  padding: 4px 6px;
+  font-size: 0.5625rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-gallery-track,
+  .brand-gallery-track--ltr {
+    animation: none;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: center;
+    padding: 0 12px;
+  }
+
+  .brand-gallery {
+    overflow: visible;
+  }
+}
+
+@media (min-width: 768px) {
+  .brand-gallery {
+    padding: 16px 0;
+  }
+
+  .brand-gallery-item {
+    width: 180px;
+    height: 120px;
+  }
+
+  .brand-gallery-label {
+    font-size: 0.75rem;
+    padding: 8px 10px;
+  }
+
+  .brand-gallery--health {
+    padding: 10px 0;
+  }
+
+  .brand-gallery--health .brand-gallery-item {
+    width: 124px;
+    height: 84px;
+  }
+
+  .brand-gallery--health .brand-gallery-label {
+    font-size: 0.625rem;
+    padding: 5px 7px;
+  }
+}
+
 /* ── Category hero ── */
 
 .category-hero {
