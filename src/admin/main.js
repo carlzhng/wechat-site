@@ -47,7 +47,7 @@ const els = {
 };
 
 function formatPrice(price) {
-  return new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CAD' }).format(price);
+  return new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY' }).format(price);
 }
 
 function showToast(message) {
@@ -264,7 +264,7 @@ async function handleSave(e) {
     price: parseFloat(els.itemPrice.value),
     description: els.itemDescription.value,
     images: state.draftImages,
-    currency: 'CAD',
+    currency: 'CNY',
   };
 
   state.saving = true;

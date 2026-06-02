@@ -110,7 +110,7 @@ app.post('/api/upload', requireAuth, (req, res) => {
 
 app.post('/api/products', requireAuth, async (req, res) => {
   try {
-    const { name, categoryId, price, description, images, currency = 'USD' } = req.body ?? {};
+    const { name, categoryId, price, description, images, currency = 'CNY' } = req.body ?? {};
     if (!name?.trim()) return res.status(400).json({ error: 'Item name is required.' });
     if (!categoryId) return res.status(400).json({ error: 'Please pick a section.' });
     if (price === undefined || price === null || Number.isNaN(Number(price))) {
@@ -142,7 +142,7 @@ app.post('/api/products', requireAuth, async (req, res) => {
 
 app.put('/api/products/:id', requireAuth, async (req, res) => {
   try {
-    const { name, categoryId, price, description, images, currency = 'USD' } = req.body ?? {};
+    const { name, categoryId, price, description, images, currency = 'CNY' } = req.body ?? {};
     const catalog = await readCatalog();
     const index = catalog.products.findIndex((p) => p.id === req.params.id);
     if (index === -1) return res.status(404).json({ error: 'Item not found.' });
