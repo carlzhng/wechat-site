@@ -60,7 +60,28 @@ npm run dev
 - Store: [http://localhost:3000](http://localhost:3000)
 - Admin: [http://localhost:3000/admin.html](http://localhost:3000/admin.html)
 
-### 4. Deploy for WeChat
+### 4. Deploy to GitHub Pages
+
+GitHub Pages cannot run the Node.js admin API. Use it for a **read-only** storefront.
+
+1. In your repo on GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**
+2. Push to `main`. The workflow builds the site with Vite and deploys the `dist` folder.
+3. Your store will be at `https://<username>.github.io/wechat-site/`
+
+Before each push, update products locally with `npm run dev` and admin — then commit `data/catalog.json` and any files in `uploads/`.
+
+To test the Pages build locally:
+
+```bash
+npm run build:pages
+npx serve dist
+```
+
+Open the URL shown and add `/wechat-site/` if needed when testing base paths.
+
+**Note:** Styles live in `src/styles/main.css` during development. The live site uses the bundled CSS from `npm run build` (for example `assets/main-*.css`), not a `styles.css` file.
+
+### 5. Deploy for WeChat
 
 WeChat requires HTTPS. Build and run on a server:
 

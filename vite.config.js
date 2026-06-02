@@ -1,8 +1,10 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
+const isGitHubPages = process.env.GITHUB_PAGES === 'true';
+
 export default defineConfig({
-  base: './',
+  base: isGitHubPages ? '/wechat-site/' : './',
   build: {
     outDir: 'dist',
     rollupOptions: {

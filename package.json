@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node server.js",
     "build": "vite build",
+    "build:pages": "node scripts/prepare-pages.mjs && cross-env GITHUB_PAGES=true VITE_STATIC_CATALOG=true vite build",
     "start": "cross-env NODE_ENV=production node server.js"
   },
   "dependencies": {

@@ -1,9 +1,26 @@
 const API = '/api';
+const STATIC_CATALOG = import.meta.env.VITE_STATIC_CATALOG === 'true';
+const STATIC_CATALOG_URL = `${import.meta.env.BASE_URL}data/catalog.json`;
 
 async function parseJson(res) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Something went wrong.');
   return data;
+}
+
+function resolveCatalogAssets(catalog) {
+  const base = import.meta.env.BASE_URL;
+  return {
+    ...catalog,
+    products: catalog.products.map((product) => ({
+      ...product,
+      images: (product.images ?? []).map((src) => {
+        if (!src || src.startsWith('http')) return src;
+        const path = src.startsWith('/') ? src.slice(1) : src;
+        return `${base}${path}`;
+      }),
+    })),
+  };
 }
 
 async function apiFetch(url, options = {}) {
@@ -17,8 +34,20 @@ async function apiFetch(url, options = {}) {
 }
 
 export async function fetchCatalog() {
-  const res = await apiFetch(`${API}/catalog`);
-  return parseJson(res);
+  if (STATIC_CATALOG) {
+    const res = await fetch(STATIC_CATALOG_URL);
+    const catalog = await parseJson(res);
+    return resolveCatalogAssets(catalog);
+  }
+
+  try {
+    const res = await apiFetch(`${API}/catalog`);
+    return parseJson(res);
+  } catch {
+    const res = await fetch(STATIC_CATALOG_URL);
+    const catalog = await parseJson(res);
+    return resolveCatalogAssets(catalog);
+  }
 }
 
 export async function checkAuth() {
