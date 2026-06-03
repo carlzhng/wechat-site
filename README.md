@@ -64,22 +64,34 @@ npm run dev
 
 GitHub Pages cannot run the Node.js admin API. Use it for a **read-only** storefront.
 
-1. In your repo on GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**
-2. Push to `main`. The workflow builds the site with Vite and deploys the `dist` folder.
-3. Your store will be at `https://<username>.github.io/wechat-site/`
+**Important:** Do not use “Deploy from branch → `/ (root)`”. That serves raw `index.html` without CSS. Use the **`/docs` folder** instead.
 
-Before each push, update products locally with `npm run dev` and admin — then commit `data/catalog.json` and any files in `uploads/`.
+#### One-time setup (required)
 
-To test the Pages build locally:
+1. Open your repo on GitHub → **Settings** → **Pages**
+2. Under **Build and deployment**, set **Source** to **Deploy from a branch**
+3. Set **Branch** to **`main`** and folder to **`/docs`**
+4. Click **Save**
+
+#### Deploy updates
+
+After changing products locally (`npm run dev` + admin), commit `data/catalog.json` and `uploads/`, then either:
+
+- **Push to `main`** — GitHub Actions rebuilds and updates the `docs/` folder automatically, or
+- **Locally:** run `npm run deploy:docs`, then commit and push the `docs/` folder
+
+Your store URL: `https://<username>.github.io/wechat-site/`
+
+To test locally:
 
 ```bash
-npm run build:pages
-npx serve dist
+npm run deploy:docs
+npx serve docs -l 4173
 ```
 
-Open the URL shown and add `/wechat-site/` if needed when testing base paths.
+Then open `http://localhost:4173/wechat-site/`
 
-**Note:** Styles live in `src/styles/main.css` during development. The live site uses the bundled CSS from `npm run build` (for example `assets/main-*.css`), not a `styles.css` file.
+**Note:** Styles live in `src/styles/main.css` during development. The live site uses bundled CSS from the build (e.g. `docs/assets/main-*.css`).
 
 ### 5. Deploy for WeChat
 

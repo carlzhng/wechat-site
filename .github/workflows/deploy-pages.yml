@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -26,11 +26,23 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: node scripts/prepare-pages.mjs
       - run: npm run build:pages
         env:
           GITHUB_PAGES: true
           VITE_STATIC_CATALOG: true
+
+      - name: Copy build into docs folder
+        run: |
+          rm -rf docs
+          cp -r dist docs
+          touch docs/.nojekyll
+
+      - name: Commit docs folder for branch deployment
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: deploy built site to docs [skip ci]'
+          file_pattern: docs/**
+          branch: main
 
       - uses: actions/upload-pages-artifact@v3
         with:

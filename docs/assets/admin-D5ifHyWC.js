@@ -1,0 +1,36 @@
+import{c as f,l as v,b as h,f as b,u as E,a as I,d as B,e as C}from"./api-BQI-HevN.js";const a={loggedIn:!1,categories:[],products:[],activeCategory:"all",editingId:null,draftImages:[],saving:!1},t={loginScreen:document.getElementById("login-screen"),loginForm:document.getElementById("login-form"),loginError:document.getElementById("login-error"),dashboard:document.getElementById("dashboard"),logoutBtn:document.getElementById("logout-btn"),categoryTabs:document.getElementById("category-tabs"),productList:document.getElementById("product-list"),addBtn:document.getElementById("add-btn"),editModal:document.getElementById("edit-modal"),editBackdrop:document.getElementById("edit-backdrop"),editClose:document.getElementById("edit-close"),editTitle:document.getElementById("edit-title"),editForm:document.getElementById("edit-form"),itemName:document.getElementById("item-name"),itemCategory:document.getElementById("item-category"),itemPrice:document.getElementById("item-price"),itemDescription:document.getElementById("item-description"),photoGrid:document.getElementById("photo-grid"),photoInput:document.getElementById("photo-input"),editError:document.getElementById("edit-error"),deleteBtn:document.getElementById("delete-btn"),cancelBtn:document.getElementById("cancel-btn"),saveBtn:document.getElementById("save-btn"),toast:document.getElementById("toast")};function L(e){return new Intl.NumberFormat("zh-CN",{style:"currency",currency:"CNY"}).format(e)}function s(e){t.toast.textContent=e,t.toast.hidden=!1,t.toast.classList.add("show"),setTimeout(()=>{t.toast.classList.remove("show"),setTimeout(()=>{t.toast.hidden=!0},300)},3e3)}function i(e,n){n?(e.textContent=n,e.hidden=!1):(e.hidden=!0,e.textContent="")}function c(e){a.loggedIn=e,t.loginScreen.hidden=e,t.dashboard.hidden=!e}async function l(){const e=await b();a.categories=e.categories,a.products=e.products,a.activeCategory==="all"&&a.categories.length,T()}function w(){return a.activeCategory==="all"?a.products:a.products.filter(e=>e.categoryId===a.activeCategory)}function $(e){var n;return((n=a.categories.find(o=>o.id===e))==null?void 0:n.name)??"未知分类"}function g(){const e=[{id:"all",name:"全部商品",icon:"📦"},...a.categories.map(n=>({id:n.id,name:n.name,icon:n.icon}))];t.categoryTabs.innerHTML=e.map(n=>`
+    <button
+      class="category-tab ${n.id===a.activeCategory?"active":""}"
+      data-category="${n.id}"
+      type="button"
+    >
+      <span aria-hidden="true">${n.icon}</span> ${n.name}
+    </button>
+  `).join(""),t.categoryTabs.querySelectorAll(".category-tab").forEach(n=>{n.addEventListener("click",()=>{a.activeCategory=n.dataset.category,g(),p()})})}function p(){var n;const e=w();if(e.length===0){t.productList.innerHTML=`
+      <div class="empty-list">
+        <p>这里还没有商品。</p>
+        <button class="btn btn-primary" type="button" id="empty-add-btn">+ 添加第一件商品</button>
+      </div>
+    `,(n=document.getElementById("empty-add-btn"))==null||n.addEventListener("click",()=>m());return}t.productList.innerHTML=e.map(o=>`
+      <article class="admin-product-card">
+        <div class="admin-product-thumb">${o.images[0]?`<img src="${o.images[0]}" alt="" />`:'<div class="no-photo">暂无图片</div>'}</div>
+        <div class="admin-product-info">
+          <p class="admin-product-section">${$(o.categoryId)}</p>
+          <h3>${o.name}</h3>
+          <p class="admin-product-price">${L(o.price)}</p>
+          <p class="admin-product-desc">${o.description||"暂无描述"}</p>
+          <p class="admin-product-photos">${o.images.length} 张图片</p>
+        </div>
+        <button class="btn btn-secondary edit-product-btn" data-id="${o.id}" type="button">
+          编辑
+        </button>
+      </article>
+    `).join(""),t.productList.querySelectorAll(".edit-product-btn").forEach(o=>{o.addEventListener("click",()=>m(o.dataset.id))})}function T(){g(),p(),k()}function k(){t.itemCategory.innerHTML=a.categories.map(e=>`<option value="${e.id}">${e.icon} ${e.name}</option>`).join("")}function u(){t.photoGrid.innerHTML=a.draftImages.map((e,n)=>`
+    <div class="photo-thumb ${n===0?"is-cover":""}">
+      ${n===0?'<span class="cover-badge">Cover</span>':""}
+      <img src="${e}" alt="" />
+      <button class="photo-remove" data-index="${n}" type="button" aria-label="Remove photo">✕</button>
+    </div>
+  `).join(""),t.photoGrid.querySelectorAll(".photo-remove").forEach(e=>{e.addEventListener("click",()=>{a.draftImages.splice(Number(e.dataset.index),1),u()})})}function m(e=null){var n;if(a.editingId=e,i(t.editError,""),e){const o=a.products.find(d=>d.id===e);if(!o)return;t.editTitle.textContent="编辑商品",t.itemName.value=o.name,t.itemCategory.value=o.categoryId,t.itemPrice.value=o.price,t.itemDescription.value=o.description??"",a.draftImages=[...o.images],t.deleteBtn.hidden=!1}else t.editTitle.textContent="新增商品",t.editForm.reset(),t.itemCategory.value=a.activeCategory!=="all"?a.activeCategory:((n=a.categories[0])==null?void 0:n.id)??"",a.draftImages=[],t.deleteBtn.hidden=!0;u(),t.editModal.classList.add("open"),t.editModal.setAttribute("aria-hidden","false"),document.body.classList.add("modal-open"),t.itemName.focus()}function r(){t.editModal.classList.remove("open"),t.editModal.setAttribute("aria-hidden","true"),document.body.classList.remove("modal-open"),a.editingId=null,a.draftImages=[],t.photoInput.value=""}async function x(e){for(const n of e)try{const{url:o}=await C(n);a.draftImages.push(o)}catch(o){s(o.message)}u()}async function P(e){if(e.preventDefault(),a.saving)return;i(t.editError,"");const n={name:t.itemName.value,categoryId:t.itemCategory.value,price:parseFloat(t.itemPrice.value),description:t.itemDescription.value,images:a.draftImages,currency:"CNY"};a.saving=!0,t.saveBtn.disabled=!0,t.saveBtn.textContent="正在保存…";try{a.editingId?(await E(a.editingId,n),s("已更新商品，顾客现在就能看到。")):(await I(n),s("已新增商品！")),await l(),r()}catch(o){i(t.editError,o.message)}finally{a.saving=!1,t.saveBtn.disabled=!1,t.saveBtn.textContent="保存"}}async function M(){if(!a.editingId)return;const e=a.products.find(o=>o.id===a.editingId);if(!(!e||!window.confirm(`确定要删除“${e.name}”吗？
+
+删除后无法恢复。`)))try{await B(a.editingId),s("已删除商品。"),await l(),r()}catch(o){i(t.editError,o.message)}}async function N(){window.location.protocol==="file:"&&(i(t.loginError,"请打开 http://localhost:3000/admin.html（不要直接打开本地文件）。请先运行 npm run dev。"),t.loginForm.querySelector('button[type="submit"]').disabled=!0);try{const{loggedIn:e}=await f();c(e),e&&await l()}catch{c(!1)}t.loginForm.addEventListener("submit",async e=>{e.preventDefault(),i(t.loginError,"");const n=document.getElementById("password"),o=t.loginForm.querySelector('button[type="submit"]'),d=n.value.trim();if(!d){i(t.loginError,"请输入密码。");return}o.disabled=!0,o.textContent="正在登录…";try{await v(d),c(!0),await l(),n.value=""}catch(y){i(t.loginError,y.message)}finally{o.disabled=!1,o.textContent="登录"}}),t.logoutBtn.addEventListener("click",async()=>{await h(),c(!1)}),t.addBtn.addEventListener("click",()=>m()),t.editClose.addEventListener("click",r),t.editBackdrop.addEventListener("click",r),t.cancelBtn.addEventListener("click",r),t.editForm.addEventListener("submit",P),t.deleteBtn.addEventListener("click",M),t.photoInput.addEventListener("change",async()=>{var e;(e=t.photoInput.files)!=null&&e.length&&(await x([...t.photoInput.files]),t.photoInput.value="")})}N();

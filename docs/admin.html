@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>店铺管理</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap"
+      rel="stylesheet"
+    />
+    <script type="module" crossorigin src="/wechat-site/assets/admin-D5ifHyWC.js"></script>
+    <link rel="modulepreload" crossorigin href="/wechat-site/assets/api-BQI-HevN.js">
+    <link rel="stylesheet" crossorigin href="/wechat-site/assets/admin-BZE1m5x_.css">
+  </head>
+  <body>
+    <div id="app">
+      <!-- Login -->
+      <section class="login-screen" id="login-screen">
+        <div class="login-card">
+          <div class="login-icon" aria-hidden="true">🔐</div>
+          <h1>店铺管理</h1>
+          <p class="login-subtitle">登录后管理商品信息</p>
+          <div class="login-help">
+            <strong>登录前请先确认：</strong>
+            <ol>
+              <li>在项目目录运行 <code>npm run dev</code></li>
+              <li>在浏览器打开 <code>http://localhost:3000/admin.html</code></li>
+            </ol>
+            <p>不要在文件夹里直接双击打开 admin.html。</p>
+          </div>
+          <form id="login-form">
+            <label class="field-label" for="password">密码</label>
+            <input
+              class="field-input"
+              type="password"
+              id="password"
+              name="password"
+              placeholder="请输入密码"
+              autocomplete="current-password"
+              required
+            />
+            <p class="field-error" id="login-error" hidden></p>
+            <button class="btn btn-primary btn-full" type="submit">登录</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Dashboard -->
+      <section class="dashboard" id="dashboard" hidden>
+        <header class="admin-header">
+          <div>
+            <h1>管理店铺</h1>
+            <p class="admin-subtitle">新增、编辑、删除商品，保存后立即生效</p>
+          </div>
+          <div class="admin-header-actions">
+            <a class="btn btn-ghost" href="/" target="_blank" rel="noopener">查看店铺</a>
+            <button class="btn btn-ghost" id="logout-btn" type="button">退出登录</button>
+          </div>
+        </header>
+
+        <div class="admin-toolbar">
+          <div class="category-tabs" id="category-tabs"></div>
+          <button class="btn btn-primary" id="add-btn" type="button">+ 新增商品</button>
+        </div>
+
+        <div class="product-list" id="product-list"></div>
+      </section>
+
+      <!-- Edit / Add modal -->
+      <div class="admin-modal" id="edit-modal" aria-hidden="true">
+        <div class="admin-modal-backdrop" id="edit-backdrop"></div>
+        <div class="admin-modal-panel">
+          <div class="admin-modal-header">
+            <h2 id="edit-title">新增商品</h2>
+            <button class="icon-btn" id="edit-close" type="button" aria-label="关闭">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <form class="edit-form" id="edit-form">
+            <div class="form-group">
+              <label class="field-label" for="item-name">商品名称</label>
+              <input class="field-input" id="item-name" required placeholder="例如：纯棉T恤" />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="field-label" for="item-category">分类</label>
+                <select class="field-input" id="item-category" required></select>
+              </div>
+              <div class="form-group">
+                <label class="field-label" for="item-price">价格</label>
+                <input
+                  class="field-input"
+                  id="item-price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  required
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="field-label" for="item-description">商品描述</label>
+              <textarea
+                class="field-input field-textarea"
+                id="item-description"
+                rows="3"
+                placeholder="给顾客介绍一下这件商品…"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="field-label">图片</label>
+              <p class="field-hint">第一张为封面图。点击 ✕ 可删除图片。</p>
+              <div class="photo-grid" id="photo-grid"></div>
+              <label class="photo-add-btn">
+                <input type="file" id="photo-input" accept="image/*" multiple hidden />
+                <span>+ 添加图片</span>
+              </label>
+            </div>
+
+            <p class="field-error" id="edit-error" hidden></p>
+
+            <div class="form-actions">
+              <button class="btn btn-danger" id="delete-btn" type="button" hidden>删除商品</button>
+              <div class="form-actions-right">
+                <button class="btn btn-ghost" id="cancel-btn" type="button">取消</button>
+                <button class="btn btn-primary" id="save-btn" type="submit">保存</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Toast -->
+      <div class="toast" id="toast" hidden></div>
+    </div>
+
+  </body>
+</html>

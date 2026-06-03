@@ -1,0 +1,23 @@
+{
+  "categories": [
+    {
+      "id": "clothing-apparel",
+      "name": "服装与服饰",
+      "icon": "👕",
+      "description": "时尚穿搭、配饰与日常服装"
+    },
+    {
+      "id": "snacks-food",
+      "name": "零食与食品",
+      "icon": "🍜",
+      "description": "零食、日常食品与特色美味"
+    },
+    {
+      "id": "health-beauty",
+      "name": "健康与美妆",
+      "icon": "✨",
+      "description": "护肤、健康与个人护理"
+    }
+  ],
+  "products": []
+}
