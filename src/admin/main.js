@@ -9,6 +9,7 @@ import {
   deleteProduct,
   addCategoryBrand,
   removeCategoryBrand,
+  reorderCategoryBrands,
 } from '../api.js';
 
 const state = {
@@ -263,6 +264,21 @@ function escapeHtml(text) {
     .replace(/"/g, '&quot;');
 }
 
+function encodeBrandAttr(brand) {
+  return encodeURIComponent(brand);
+}
+
+function decodeBrandAttr(value) {
+  return decodeURIComponent(value ?? '');
+}
+
+async function saveBrandOrder(categoryId, brands) {
+  const updated = await reorderCategoryBrands(categoryId, brands);
+  const index = state.categories.findIndex((c) => c.id === updated.id);
+  if (index !== -1) state.categories[index] = updated;
+  renderBrandManager();
+}
+
 function renderBrandManager() {
   els.brandManagerList.innerHTML = state.categories
     .map((cat) => {
@@ -271,27 +287,38 @@ function renderBrandManager() {
         ? brands
             .map(
               (brand) => `
-          <span class="brand-chip">
-            <span>${escapeHtml(brand)}</span>
+          <li class="brand-chip" data-brand="${encodeBrandAttr(brand)}">
+            <span
+              class="brand-chip-handle"
+              draggable="true"
+              aria-label="拖动以排序"
+              title="拖动排序"
+            >⠿</span>
+            <span class="brand-chip-label">${escapeHtml(brand)}</span>
             <button
               class="brand-chip-remove"
               type="button"
               data-category="${cat.id}"
-              data-brand="${escapeHtml(brand)}"
+              data-brand="${encodeBrandAttr(brand)}"
               aria-label="删除品牌 ${escapeHtml(brand)}"
             >✕</button>
-          </span>
+          </li>
         `
             )
             .join('')
+        : '';
+
+      const brandList = brands.length
+        ? `<ul class="brand-chip-list" data-category="${cat.id}">${brandChips}</ul>`
         : '<p class="brand-manager-empty">暂无品牌，请添加。</p>';
 
       return `
         <article class="brand-manager-card" data-category="${cat.id}">
           <div class="brand-manager-card-header">
             <h3><span aria-hidden="true">${cat.icon}</span> ${escapeHtml(cat.name)}</h3>
+            ${brands.length ? '<p class="brand-manager-hint">拖动品牌可调整侧栏显示顺序</p>' : ''}
           </div>
-          <div class="brand-chip-list">${brandChips}</div>
+          ${brandList}
           <form class="brand-add-form" data-category="${cat.id}">
             <input
               class="field-input brand-add-input"
@@ -328,8 +355,10 @@ function renderBrandManager() {
   });
 
   els.brandManagerList.querySelectorAll('.brand-chip-remove').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const { category, brand } = btn.dataset;
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const category = btn.dataset.category;
+      const brand = decodeBrandAttr(btn.dataset.brand);
       const confirmed = window.confirm(`确定从「${getCategoryName(category)}」中删除品牌「${brand}」吗？`);
       if (!confirmed) return;
 
@@ -343,6 +372,78 @@ function renderBrandManager() {
       } catch (err) {
         showToast(err.message);
       }
+    });
+  });
+
+  bindBrandDragAndDrop();
+}
+
+function bindBrandDragAndDrop() {
+  let draggedBrand = null;
+  let draggedCategoryId = null;
+
+  els.brandManagerList.querySelectorAll('.brand-chip-list').forEach((list) => {
+    const categoryId = list.dataset.category;
+
+    list.querySelectorAll('.brand-chip').forEach((chip) => {
+      const handle = chip.querySelector('.brand-chip-handle');
+      if (!handle) return;
+
+      handle.addEventListener('dragstart', (e) => {
+        draggedBrand = decodeBrandAttr(chip.dataset.brand);
+        draggedCategoryId = categoryId;
+        chip.classList.add('is-dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', draggedBrand);
+        if (e.dataTransfer.setDragImage) {
+          e.dataTransfer.setDragImage(chip, 16, 16);
+        }
+      });
+
+      handle.addEventListener('dragend', () => {
+        chip.classList.remove('is-dragging');
+        list.querySelectorAll('.brand-chip').forEach((el) => el.classList.remove('is-drag-over'));
+        draggedBrand = null;
+        draggedCategoryId = null;
+      });
+
+      chip.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (draggedCategoryId !== categoryId) return;
+        list.querySelectorAll('.brand-chip').forEach((el) => el.classList.remove('is-drag-over'));
+        chip.classList.add('is-drag-over');
+      });
+
+      chip.addEventListener('dragleave', () => {
+        chip.classList.remove('is-drag-over');
+      });
+
+      chip.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        chip.classList.remove('is-drag-over');
+        if (draggedCategoryId !== categoryId || !draggedBrand) return;
+
+        const targetBrand = decodeBrandAttr(chip.dataset.brand);
+        if (draggedBrand === targetBrand) return;
+
+        const chips = [...list.querySelectorAll('.brand-chip')];
+        const order = chips.map((el) => decodeBrandAttr(el.dataset.brand));
+        const from = order.indexOf(draggedBrand);
+        const to = order.indexOf(targetBrand);
+        if (from < 0 || to < 0) return;
+
+        order.splice(from, 1);
+        order.splice(to, 0, draggedBrand);
+
+        try {
+          await saveBrandOrder(categoryId, order);
+          showToast('已更新品牌顺序。');
+        } catch (err) {
+          showToast(err.message);
+          renderBrandManager();
+        }
+      });
     });
   });
 }
