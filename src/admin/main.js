@@ -7,6 +7,8 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  addCategoryBrand,
+  removeCategoryBrand,
 } from '../api.js';
 
 const state = {
@@ -35,6 +37,8 @@ const els = {
   editForm: document.getElementById('edit-form'),
   itemName: document.getElementById('item-name'),
   itemCategory: document.getElementById('item-category'),
+  itemBrandGroup: document.getElementById('item-brand-group'),
+  itemBrand: document.getElementById('item-brand'),
   itemPrice: document.getElementById('item-price'),
   itemDescription: document.getElementById('item-description'),
   photoGrid: document.getElementById('photo-grid'),
@@ -44,6 +48,7 @@ const els = {
   cancelBtn: document.getElementById('cancel-btn'),
   saveBtn: document.getElementById('save-btn'),
   toast: document.getElementById('toast'),
+  brandManagerList: document.getElementById('brand-manager-list'),
 };
 
 function formatPrice(price) {
@@ -97,6 +102,72 @@ function getCategoryName(id) {
   return state.categories.find((c) => c.id === id)?.name ?? '未知分类';
 }
 
+function getCategoryBrands(categoryId) {
+  return state.categories.find((c) => c.id === categoryId)?.brands ?? [];
+}
+
+function normalizeBrand(brand) {
+  return (brand ?? '').trim().toLowerCase();
+}
+
+function brandsMatch(a, b) {
+  return normalizeBrand(a) === normalizeBrand(b);
+}
+
+function resolveBrandForCategory(categoryId, brand) {
+  const trimmed = (brand ?? '').trim();
+  if (!trimmed) return '';
+  const match = getCategoryBrands(categoryId).find((b) => brandsMatch(b, trimmed));
+  return match ?? trimmed;
+}
+
+function populateBrandSelect(categoryId, selectedBrand = '') {
+  const brands = getCategoryBrands(categoryId);
+  const resolved = resolveBrandForCategory(categoryId, selectedBrand);
+
+  if (!brands.length) {
+    els.itemBrandGroup.hidden = true;
+    els.itemBrand.required = false;
+    els.itemBrand.innerHTML = '';
+    return;
+  }
+
+  els.itemBrandGroup.hidden = false;
+  els.itemBrand.required = true;
+  els.itemBrand.innerHTML = [
+    `<option value="" disabled ${resolved ? '' : 'selected'}>请选择品牌</option>`,
+    ...brands.map(
+      (brand) =>
+        `<option value="${brand}" ${brandsMatch(brand, resolved) ? 'selected' : ''}>${brand}</option>`
+    ),
+  ].join('');
+}
+
+function renderAdminProductCard(product) {
+  const thumb = product.images[0]
+    ? `<img src="${product.images[0]}" alt="" />`
+    : `<div class="no-photo">暂无图片</div>`;
+  const brandLabel = product.brand
+    ? product.brand
+    : '<span class="admin-product-missing-brand">未分配品牌</span>';
+
+  return `
+    <article class="admin-product-card">
+      <div class="admin-product-thumb">${thumb}</div>
+      <div class="admin-product-info">
+        <p class="admin-product-section">${getCategoryName(product.categoryId)} · ${brandLabel}</p>
+        <h3>${product.name}</h3>
+        <p class="admin-product-price">${formatPrice(product.price)}</p>
+        <p class="admin-product-desc">${product.description || '暂无描述'}</p>
+        <p class="admin-product-photos">${product.images.length} 张图片</p>
+      </div>
+      <button class="btn btn-secondary edit-product-btn" data-id="${product.id}" type="button">
+        编辑
+      </button>
+    </article>
+  `;
+}
+
 function renderCategoryTabs() {
   const tabs = [
     { id: 'all', name: '全部商品', icon: '📦' },
@@ -140,36 +211,145 @@ function renderProductList() {
     return;
   }
 
-  els.productList.innerHTML = items
-    .map((product) => {
-      const thumb = product.images[0]
-        ? `<img src="${product.images[0]}" alt="" />`
-        : `<div class="no-photo">暂无图片</div>`;
-      return `
-      <article class="admin-product-card">
-        <div class="admin-product-thumb">${thumb}</div>
-        <div class="admin-product-info">
-          <p class="admin-product-section">${getCategoryName(product.categoryId)}</p>
-          <h3>${product.name}</h3>
-          <p class="admin-product-price">${formatPrice(product.price)}</p>
-          <p class="admin-product-desc">${product.description || '暂无描述'}</p>
-          <p class="admin-product-photos">${product.images.length} 张图片</p>
-        </div>
-        <button class="btn btn-secondary edit-product-btn" data-id="${product.id}" type="button">
-          编辑
-        </button>
-      </article>
-    `;
-    })
-    .join('');
+  if (state.activeCategory !== 'all') {
+    const brands = getCategoryBrands(state.activeCategory);
+    if (brands.length) {
+      const assigned = new Set();
+      const sections = brands.map((brand) => {
+        const brandProducts = items.filter((p) => {
+          if (!p.brand || !brandsMatch(p.brand, brand)) return false;
+          assigned.add(p.id);
+          return true;
+        });
+        return { brand, products: brandProducts };
+      });
+      const otherProducts = items.filter((p) => !assigned.has(p.id));
+      if (otherProducts.length) {
+        sections.push({ brand: '未分配品牌', products: otherProducts });
+      }
 
+      els.productList.innerHTML = sections
+        .map(
+          ({ brand, products }) => `
+        <section class="admin-brand-section">
+          <h3 class="admin-brand-section-title">${brand}</h3>
+          <div class="admin-brand-section-list">
+            ${products.length ? products.map(renderAdminProductCard).join('') : '<p class="admin-brand-section-empty">该品牌暂无商品</p>'}
+          </div>
+        </section>
+      `
+        )
+        .join('');
+      bindEditProductButtons();
+      return;
+    }
+  }
+
+  els.productList.innerHTML = items.map(renderAdminProductCard).join('');
+  bindEditProductButtons();
+}
+
+function bindEditProductButtons() {
   els.productList.querySelectorAll('.edit-product-btn').forEach((btn) => {
     btn.addEventListener('click', () => openEditor(btn.dataset.id));
   });
 }
 
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderBrandManager() {
+  els.brandManagerList.innerHTML = state.categories
+    .map((cat) => {
+      const brands = cat.brands ?? [];
+      const brandChips = brands.length
+        ? brands
+            .map(
+              (brand) => `
+          <span class="brand-chip">
+            <span>${escapeHtml(brand)}</span>
+            <button
+              class="brand-chip-remove"
+              type="button"
+              data-category="${cat.id}"
+              data-brand="${escapeHtml(brand)}"
+              aria-label="删除品牌 ${escapeHtml(brand)}"
+            >✕</button>
+          </span>
+        `
+            )
+            .join('')
+        : '<p class="brand-manager-empty">暂无品牌，请添加。</p>';
+
+      return `
+        <article class="brand-manager-card" data-category="${cat.id}">
+          <div class="brand-manager-card-header">
+            <h3><span aria-hidden="true">${cat.icon}</span> ${escapeHtml(cat.name)}</h3>
+          </div>
+          <div class="brand-chip-list">${brandChips}</div>
+          <form class="brand-add-form" data-category="${cat.id}">
+            <input
+              class="field-input brand-add-input"
+              type="text"
+              placeholder="输入新品牌名称"
+              maxlength="80"
+              required
+            />
+            <button class="btn btn-secondary" type="submit">添加品牌</button>
+          </form>
+        </article>
+      `;
+    })
+    .join('');
+
+  els.brandManagerList.querySelectorAll('.brand-add-form').forEach((form) => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = form.querySelector('.brand-add-input');
+      const brand = input.value.trim();
+      if (!brand) return;
+
+      try {
+        const updated = await addCategoryBrand(form.dataset.category, brand);
+        const index = state.categories.findIndex((c) => c.id === updated.id);
+        if (index !== -1) state.categories[index] = updated;
+        renderBrandManager();
+        populateBrandSelect(form.dataset.category, brand);
+        showToast(`已添加品牌「${brand}」。`);
+      } catch (err) {
+        showToast(err.message);
+      }
+    });
+  });
+
+  els.brandManagerList.querySelectorAll('.brand-chip-remove').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const { category, brand } = btn.dataset;
+      const confirmed = window.confirm(`确定从「${getCategoryName(category)}」中删除品牌「${brand}」吗？`);
+      if (!confirmed) return;
+
+      try {
+        const updated = await removeCategoryBrand(category, brand);
+        const index = state.categories.findIndex((c) => c.id === updated.id);
+        if (index !== -1) state.categories[index] = updated;
+        renderBrandManager();
+        populateBrandSelect(category);
+        showToast(`已删除品牌「${brand}」。`);
+      } catch (err) {
+        showToast(err.message);
+      }
+    });
+  });
+}
+
 function renderDashboard() {
   renderCategoryTabs();
+  renderBrandManager();
   renderProductList();
   populateCategorySelect();
 }
@@ -211,15 +391,18 @@ function openEditor(productId = null) {
     els.editTitle.textContent = '编辑商品';
     els.itemName.value = product.name;
     els.itemCategory.value = product.categoryId;
+    populateBrandSelect(product.categoryId, product.brand ?? '');
     els.itemPrice.value = product.price;
     els.itemDescription.value = product.description ?? '';
     state.draftImages = [...product.images];
     els.deleteBtn.hidden = false;
   } else {
     els.editTitle.textContent = '新增商品';
-    els.editForm.reset();
-    els.itemCategory.value =
+    const defaultCategory =
       state.activeCategory !== 'all' ? state.activeCategory : state.categories[0]?.id ?? '';
+    els.editForm.reset();
+    els.itemCategory.value = defaultCategory;
+    populateBrandSelect(defaultCategory);
     state.draftImages = [];
     els.deleteBtn.hidden = true;
   }
@@ -258,14 +441,26 @@ async function handleSave(e) {
 
   showError(els.editError, '');
 
+  const categoryId = els.itemCategory.value;
+  const allowedBrands = getCategoryBrands(categoryId);
+
   const payload = {
     name: els.itemName.value,
-    categoryId: els.itemCategory.value,
+    categoryId,
     price: parseFloat(els.itemPrice.value),
     description: els.itemDescription.value,
     images: state.draftImages,
     currency: 'CNY',
   };
+
+  if (allowedBrands.length) {
+    const brand = resolveBrandForCategory(categoryId, els.itemBrand.value);
+    if (!brand) {
+      showError(els.editError, '请选择品牌。');
+      return;
+    }
+    payload.brand = brand;
+  }
 
   state.saving = true;
   els.saveBtn.disabled = true;
@@ -366,6 +561,9 @@ async function init() {
   els.cancelBtn.addEventListener('click', closeEditor);
   els.editForm.addEventListener('submit', handleSave);
   els.deleteBtn.addEventListener('click', handleDelete);
+  els.itemCategory.addEventListener('change', () => {
+    populateBrandSelect(els.itemCategory.value);
+  });
 
   els.photoInput.addEventListener('change', async () => {
     if (els.photoInput.files?.length) {

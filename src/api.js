@@ -98,3 +98,21 @@ export async function deleteProduct(id) {
   const res = await apiFetch(`${API}/products/${id}`, { method: 'DELETE' });
   return parseJson(res);
 }
+
+export async function addCategoryBrand(categoryId, brand) {
+  const res = await apiFetch(`${API}/categories/${categoryId}/brands`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ brand }),
+  });
+  return parseJson(res);
+}
+
+export async function removeCategoryBrand(categoryId, brand) {
+  const res = await apiFetch(`${API}/categories/${categoryId}/brands`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ brand }),
+  });
+  return parseJson(res);
+}

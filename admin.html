@@ -54,7 +54,7 @@
         <header class="admin-header">
           <div>
             <h1>管理店铺</h1>
-            <p class="admin-subtitle">新增、编辑、删除商品，保存后立即生效</p>
+            <p class="admin-subtitle">管理商品与各分类品牌，保存后立即生效</p>
           </div>
           <div class="admin-header-actions">
             <a class="btn btn-ghost" href="/" target="_blank" rel="noopener">查看店铺</a>
@@ -66,6 +66,14 @@
           <div class="category-tabs" id="category-tabs"></div>
           <button class="btn btn-primary" id="add-btn" type="button">+ 新增商品</button>
         </div>
+
+        <section class="brand-manager" id="brand-manager" aria-labelledby="brand-manager-title">
+          <div class="brand-manager-header">
+            <h2 id="brand-manager-title">品牌管理</h2>
+            <p>为每个分类添加品牌，顾客可在侧栏菜单中按品牌浏览。</p>
+          </div>
+          <div class="brand-manager-list" id="brand-manager-list"></div>
+        </section>
 
         <div class="product-list" id="product-list"></div>
       </section>
@@ -94,6 +102,13 @@
                 <label class="field-label" for="item-category">分类</label>
                 <select class="field-input" id="item-category" required></select>
               </div>
+              <div class="form-group" id="item-brand-group">
+                <label class="field-label" for="item-brand">品牌</label>
+                <select class="field-input" id="item-brand" required></select>
+              </div>
+            </div>
+
+            <div class="form-row">
               <div class="form-group">
                 <label class="field-label" for="item-price">价格</label>
                 <input

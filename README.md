@@ -24,6 +24,14 @@ From there you can:
 
 Changes save immediately and appear on the store for customers.
 
+### Can Mom use admin without running npm locally?
+
+**Yes.** Local `npm run dev` is only for development on your computer.
+
+For daily use, deploy the full app once to a cloud host (Render, Railway, a VPS, etc.) with HTTPS. Mom then opens `https://your-domain.com/admin.html` in a browser—no terminal, no npm.
+
+GitHub Pages **cannot** run the admin (read-only store only). See **[docs/HOSTING-FOR-ADMIN.md](docs/HOSTING-FOR-ADMIN.md)** for a step-by-step hosting guide.
+
 ---
 
 ## Setup (one time, for you)
@@ -121,7 +129,7 @@ Deploy to any Node.js host (Railway, Render, a VPS, etc.). Make sure:
 
 ## Categories
 
-Default sections: Clothing & Apparel, Snacks & Food, Health & Beauty. To rename or add sections, edit `data/catalog.json` (the `categories` array) — this is a one-time setup task.
+Default sections: Clothing & Apparel, Health, Beauty, Snacks & Food. To rename or add sections, edit `data/catalog.json` (the `categories` array) — the sidebar and admin read from there automatically.
 
 ## Security notes
 
