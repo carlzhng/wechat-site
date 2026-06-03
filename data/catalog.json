@@ -2,21 +2,52 @@
   "categories": [
     {
       "id": "clothing-apparel",
-      "name": "服装与服饰",
+      "name": "女士/男士包包与服饰",
       "icon": "👕",
-      "description": "时尚穿搭、配饰与日常服装"
+      "description": "",
+      "brands": [
+        "Coach",
+        "Michael Kors",
+        "Kate Spade",
+        "FOSSIL",
+        "Lululemon",
+        "Canada Goose",
+        "Arc'teryx"
+      ]
+    },
+    {
+      "id": "health",
+      "name": "保健品专区",
+      "icon": "💊",
+      "description": "加拿大正品保健品",
+      "brands": [
+        "心脑健康 (鱼油/Q10)",
+        "骨骼健康 (钙镁锌/维生素D3)",
+        "女性健康",
+        "儿童保健"
+      ]
+    },
+    {
+      "id": "beauty",
+      "name": "护肤与美妆",
+      "icon": "✨",
+      "description": "护肤、健康与个人护理",
+      "brands": [
+        "Estee Lauder",
+        "Kiehl's",
+        "芦荟霜"
+      ]
     },
     {
       "id": "snacks-food",
-      "name": "零食与食品",
-      "icon": "🍜",
-      "description": "零食、日常食品与特色美味"
-    },
-    {
-      "id": "health-beauty",
-      "name": "健康与美妆",
-      "icon": "✨",
-      "description": "护肤、健康与个人护理"
+      "name": "零食与奶粉",
+      "icon": "🍫",
+      "description": "零食、奶粉与特色美味",
+      "brands": [
+        "奶粉",
+        "特色零食",
+        "巧克力"
+      ]
     }
   ],
   "products": []

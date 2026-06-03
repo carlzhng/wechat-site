@@ -48,17 +48,36 @@ const FASHION_BRAND_SHOWCASE = [
   }
 ];
 
-const HEALTH_BEAUTY_SHOWCASE = [
-  {
+const STORE_NAME = '加拿大优选生活馆';
+
+const STORE_BRANDS = [
+  ...new Set(FASHION_BRAND_SHOWCASE.map((item) => item.brand)),
+];
+
+const STORE_INFO = {
+  welcome: '欢迎来到【加拿大优选生活馆】',
+  description:
+    '专注于加拿大本地品牌及热门商品代购，所有商品均来自加拿大卡尔加里正规商场品牌专卖店及 Costco 等正规渠道。',
+  wechat: '',
+  note: '本网站仅供浏览展示，下单请直接联系微信。微信ID：tieyingtu',
+};
+
+const STORE_INTRO_POSTERS = {
+  left: {
     brand: 'Jamieson',
     image: 'https://www.ccmpcapital.com/wp-content/uploads/2016/06/Jamieson-New-Products-300-dpi-3.jpg',
     alt: 'Jamieson 维生素与保健品',
   },
-  {
+  right: {
     brand: 'Estee Lauder',
     image: 'https://m.esteelauder-me.com/media/export/cms/splashpage/splashpage_module_3_a.jpg',
     alt: 'Estee Lauder 护肤产品',
   },
+};
+
+const HEALTH_BEAUTY_SHOWCASE = [
+  STORE_INTRO_POSTERS.left,
+  STORE_INTRO_POSTERS.right,
   {
     brand: 'IronKids',
     image: 'https://www.yeswellness.com/cdn/shop/files/ironkids-gummies-omega-3-683702100072-41513153036590.jpg?v=1707154134',
@@ -86,6 +105,7 @@ let products = [];
 
 const state = {
   activeCategory: null,
+  activeBrand: null,
   openProductId: null,
 };
 
@@ -96,13 +116,16 @@ const els = {
   sidebarClose: document.getElementById('sidebar-close'),
   menuBtn: document.getElementById('menu-btn'),
   categoryHero: document.getElementById('category-hero'),
-  productsGrid: document.getElementById('products-grid'),
+  productsContainer: document.getElementById('products-container'),
   productModal: document.getElementById('product-modal'),
   modalBackdrop: document.getElementById('modal-backdrop'),
   modalClose: document.getElementById('modal-close'),
   modalContent: document.getElementById('modal-content'),
+  topbarBrands: document.getElementById('topbar-brands'),
   brandGalleryTrack: document.getElementById('brand-gallery-track'),
-  healthBrandGalleryTrack: document.getElementById('health-brand-gallery-track'),
+  healthPosterLeft: document.getElementById('health-poster-left'),
+  healthPosterRight: document.getElementById('health-poster-right'),
+  storeIntroCenter: document.getElementById('store-intro-center'),
 };
 
 function formatPrice(price, currency = 'CNY') {
@@ -120,12 +143,47 @@ function getProductsForCategory(categoryId) {
   return products.filter((p) => p.categoryId === categoryId);
 }
 
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function normalizeBrand(brand) {
+  return (brand ?? '').trim().toLowerCase();
+}
+
+function brandsMatch(a, b) {
+  return normalizeBrand(a) === normalizeBrand(b);
+}
+
+function getCategoryBrands(categoryId) {
+  return [...(getCategory(categoryId)?.brands ?? [])];
+}
+
+function getProductsForBrand(categoryId, brand) {
+  return getProductsForCategory(categoryId).filter(
+    (p) => p.brand && brandsMatch(p.brand, brand)
+  );
+}
+
+function brandAnchorId(categoryId, brand) {
+  const slug = brand
+    .toLowerCase()
+    .replace(/['']/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  return `brand-${categoryId}-${slug}`;
+}
+
 function getProduct(id) {
   return products.find((p) => p.id === id);
 }
 
 function showLoading() {
-  els.productsGrid.innerHTML = `
+  els.productsContainer.innerHTML = `
     <div class="empty-state">
       <p>正在加载店铺…</p>
     </div>
@@ -133,7 +191,7 @@ function showLoading() {
 }
 
 function showError() {
-  els.productsGrid.innerHTML = `
+  els.productsContainer.innerHTML = `
     <div class="empty-state">
       <p>店铺加载失败，请稍后再试。</p>
     </div>
@@ -157,59 +215,106 @@ function renderBrandGalleryTrack(trackEl, showcase, { copies = 2 } = {}) {
   trackEl.dataset.copies = String(copies);
 }
 
-function renderBrandGalleries() {
-  renderBrandGalleryTrack(els.brandGalleryTrack, FASHION_BRAND_SHOWCASE);
-  renderBrandGalleryTrack(els.healthBrandGalleryTrack, HEALTH_BEAUTY_SHOWCASE, { copies: 6 });
+function renderTopbarBrands() {
+  if (!els.topbarBrands) return;
+  els.topbarBrands.textContent = STORE_BRANDS.join(' | ');
 }
 
-function syncHealthGalleryOffset() {
-  const track = els.healthBrandGalleryTrack;
-  if (!track) return;
+function renderHealthPoster(posterEl, item) {
+  if (!posterEl || !item) return;
 
-  const items = [...track.querySelectorAll('.brand-gallery-item')];
-  const copyCount = Number(track.dataset.copies) || 4;
-  const perSet = items.length / copyCount;
-  if (!perSet) return;
+  posterEl.innerHTML = `
+    <div class="health-poster-card brand-gallery-item">
+      <img src="${item.image}" alt="${item.alt}" loading="lazy" draggable="false" />
+      <span class="brand-gallery-label">${item.brand}</span>
+    </div>
+  `;
+}
 
-  let setWidth = 0;
-  for (let i = 0; i < perSet; i++) setWidth += items[i].offsetWidth;
-  const gap = parseFloat(getComputedStyle(track).gap) || 0;
-  const oneSetWidth = setWidth + gap * (perSet - 1);
+function renderStoreIntro() {
+  renderHealthPoster(els.healthPosterLeft, STORE_INTRO_POSTERS.left);
+  renderHealthPoster(els.healthPosterRight, STORE_INTRO_POSTERS.right);
 
-  if (!oneSetWidth || !track.scrollWidth) {
-    requestAnimationFrame(syncHealthGalleryOffset);
-    return;
-  }
+  if (!els.storeIntroCenter) return;
 
-  track.style.setProperty(
-    '--marquee-shift',
-    `${-(oneSetWidth / track.scrollWidth) * 100}%`
-  );
+  const wechatBlock = STORE_INFO.wechat
+    ? `
+      <p class="store-intro-contact-item">
+        <span class="store-intro-contact-label">微信</span>
+        <span>${STORE_INFO.wechat}</span>
+      </p>`
+    : '';
+
+  els.storeIntroCenter.innerHTML = `
+    <div class="store-intro-copy">
+      <p class="store-intro-welcome">${STORE_INFO.welcome}</p>
+      <p class="store-intro-description">${STORE_INFO.description}</p>
+    </div>
+    <div class="store-intro-contact">
+      ${wechatBlock}
+      <p class="store-intro-contact-note">${STORE_INFO.note}</p>
+    </div>
+  `;
+}
+
+function renderBrandGalleries() {
+  renderBrandGalleryTrack(els.brandGalleryTrack, FASHION_BRAND_SHOWCASE);
 }
 
 /* ── Sidebar ── */
 
 function renderSidebar() {
   els.sidebarNav.innerHTML = categories
-    .map(
-      (cat) => `
-    <button
-      class="nav-item ${cat.id === state.activeCategory ? 'active' : ''}"
-      data-category="${cat.id}"
-      type="button"
-    >
-      <span class="nav-icon" aria-hidden="true">${cat.icon}</span>
-      <span class="nav-label">${cat.name}</span>
-      <span class="nav-count">${getProductsForCategory(cat.id).length}</span>
-    </button>
-  `
-    )
+    .map((cat) => {
+      const brands = getCategoryBrands(cat.id);
+      const isCategoryActive =
+        cat.id === state.activeCategory && !state.activeBrand;
+      const brandItems = brands
+        .map((brand) => {
+          const count = getProductsForBrand(cat.id, brand).length;
+          const isBrandActive =
+            cat.id === state.activeCategory && state.activeBrand === brand;
+          return `
+          <button
+            class="nav-brand-item ${isBrandActive ? 'active' : ''}"
+            type="button"
+            data-category="${cat.id}"
+            data-brand="${escapeHtml(brand)}"
+          >
+            <span class="nav-brand-label">${brand}</span>
+            <span class="nav-count">${count}</span>
+          </button>
+        `;
+        })
+        .join('');
+
+      return `
+        <div class="nav-group">
+          <button
+            class="nav-item ${isCategoryActive ? 'active' : ''}"
+            data-category="${cat.id}"
+            type="button"
+          >
+            <span class="nav-icon" aria-hidden="true">${cat.icon}</span>
+            <span class="nav-label">${cat.name}</span>
+            <span class="nav-count">${getProductsForCategory(cat.id).length}</span>
+          </button>
+          ${brands.length ? `<div class="nav-brands">${brandItems}</div>` : ''}
+        </div>
+      `;
+    })
     .join('');
 
   els.sidebarNav.querySelectorAll('.nav-item').forEach((btn) => {
     btn.addEventListener('click', () => {
       setActiveCategory(btn.dataset.category);
       closeSidebar();
+    });
+  });
+
+  els.sidebarNav.querySelectorAll('.nav-brand-item').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      navigateToBrand(btn.dataset.category, btn.dataset.brand);
     });
   });
 }
@@ -347,49 +452,36 @@ function renderCategoryHero() {
   `;
 }
 
-function renderProducts() {
-  const items = getProductsForCategory(state.activeCategory);
-
-  if (items.length === 0) {
-    els.productsGrid.innerHTML = `
-      <div class="empty-state">
-        <p>该分类暂无商品。</p>
+function renderProductCard(product) {
+  const imgs = product.images?.length ? product.images : [];
+  const { html } = imgs.length
+    ? createSlideshow(imgs, { compact: true })
+    : { html: '<div class="no-image-placeholder">暂无图片</div>' };
+  return `
+    <article class="product-card" data-product="${product.id}">
+      <div class="product-card-media">${html}</div>
+      <div class="product-card-body">
+        <h3 class="product-name">${product.name}</h3>
+        <p class="product-price">${formatPrice(product.price, product.currency)}</p>
+        <button class="view-details-btn" data-product="${product.id}" type="button">
+          查看详情
+        </button>
       </div>
-    `;
-    return;
-  }
+    </article>
+  `;
+}
 
-  els.productsGrid.innerHTML = items
-    .map((product) => {
-      const imgs = product.images?.length ? product.images : [];
-      const { html } = imgs.length
-        ? createSlideshow(imgs, { compact: true })
-        : { html: '<div class="no-image-placeholder">暂无图片</div>' };
-      return `
-      <article class="product-card" data-product="${product.id}">
-        <div class="product-card-media">${html}</div>
-        <div class="product-card-body">
-          <h3 class="product-name">${product.name}</h3>
-          <p class="product-price">${formatPrice(product.price, product.currency)}</p>
-          <button class="view-details-btn" data-product="${product.id}" type="button">
-            查看详情
-          </button>
-        </div>
-      </article>
-    `;
-    })
-    .join('');
+function bindProductCards(root) {
+  initAllSlideshows(root);
 
-  initAllSlideshows(els.productsGrid);
-
-  els.productsGrid.querySelectorAll('.view-details-btn').forEach((btn) => {
+  root.querySelectorAll('.view-details-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       openProductModal(btn.dataset.product);
     });
   });
 
-  els.productsGrid.querySelectorAll('.product-card').forEach((card) => {
+  root.querySelectorAll('.product-card').forEach((card) => {
     card.addEventListener('click', (e) => {
       if (e.target.closest('.slide-btn, .slide-dot')) return;
       openProductModal(card.dataset.product);
@@ -397,8 +489,95 @@ function renderProducts() {
   });
 }
 
+function scrollToBrand(brand) {
+  const target = document.getElementById(brandAnchorId(state.activeCategory, brand));
+  if (!target) return;
+
+  const topbar = document.querySelector('.topbar');
+  const offset = (topbar?.offsetHeight ?? 0) + 12;
+  const top = target.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({ top, behavior: 'smooth' });
+}
+
+function navigateToBrand(categoryId, brand) {
+  const needsRender = state.activeCategory !== categoryId;
+  state.activeCategory = categoryId;
+  state.activeBrand = brand;
+
+  if (needsRender) {
+    renderSidebar();
+    renderCategoryHero();
+    renderProducts();
+  } else {
+    renderSidebar();
+  }
+
+  closeSidebar();
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => scrollToBrand(brand));
+  });
+}
+
+function renderProducts() {
+  const categoryId = state.activeCategory;
+  const items = getProductsForCategory(categoryId);
+  const brands = getCategoryBrands(categoryId);
+
+  if (!brands.length) {
+    if (items.length === 0) {
+      els.productsContainer.innerHTML = `
+        <div class="empty-state">
+          <p>该分类暂无商品。</p>
+        </div>
+      `;
+      return;
+    }
+
+    els.productsContainer.innerHTML = `<div class="products-grid">${items.map(renderProductCard).join('')}</div>`;
+    bindProductCards(els.productsContainer);
+    return;
+  }
+
+  const assigned = new Set();
+  const sections = brands.map((brand) => {
+    const brandProducts = items.filter((p) => {
+      if (!p.brand || !brandsMatch(p.brand, brand)) return false;
+      assigned.add(p.id);
+      return true;
+    });
+    return { brand, products: brandProducts };
+  });
+
+  const otherProducts = items.filter((p) => !assigned.has(p.id));
+  if (otherProducts.length) {
+    sections.push({ brand: '其他', products: otherProducts, isOther: true });
+  }
+
+  els.productsContainer.innerHTML = sections
+    .map(({ brand, products: brandProducts, isOther }) => {
+      const sectionId = isOther
+        ? `brand-${categoryId}-other`
+        : brandAnchorId(categoryId, brand);
+      const gridHtml = brandProducts.length
+        ? `<div class="products-grid">${brandProducts.map(renderProductCard).join('')}</div>`
+        : `<p class="brand-section-empty">该品牌暂无商品。</p>`;
+
+      return `
+        <section class="brand-section" id="${sectionId}">
+          <h3 class="brand-section-title">${brand}</h3>
+          ${gridHtml}
+        </section>
+      `;
+    })
+    .join('');
+
+  bindProductCards(els.productsContainer);
+}
+
 function setActiveCategory(categoryId) {
   state.activeCategory = categoryId;
+  state.activeBrand = null;
   renderSidebar();
   renderCategoryHero();
   renderProducts();
@@ -420,7 +599,7 @@ function openProductModal(productId) {
   els.modalContent.innerHTML = `
     <div class="modal-slideshow-wrap">${slideshowHtml}</div>
     <div class="modal-info">
-      <p class="modal-category">${getCategory(product.categoryId).name}</p>
+      <p class="modal-category">${getCategory(product.categoryId).name}${product.brand ? ` · ${product.brand}` : ''}</p>
       <h2 class="modal-title">${product.name}</h2>
       <p class="modal-price">${formatPrice(product.price, product.currency)}</p>
       <p class="modal-description">${product.description}</p>
@@ -463,9 +642,9 @@ function bindEvents() {
 }
 
 async function init() {
+  renderTopbarBrands();
   renderBrandGalleries();
-  syncHealthGalleryOffset();
-  window.addEventListener('resize', syncHealthGalleryOffset);
+  renderStoreIntro();
   showLoading();
   bindEvents();
 

@@ -110,7 +110,8 @@ app.post('/api/upload', requireAuth, (req, res) => {
 
 app.post('/api/products', requireAuth, async (req, res) => {
   try {
-    const { name, categoryId, price, description, images, currency = 'CNY' } = req.body ?? {};
+    const { name, categoryId, brand, price, description, images, currency = 'CNY' } =
+      req.body ?? {};
     if (!name?.trim()) return res.status(400).json({ error: 'Item name is required.' });
     if (!categoryId) return res.status(400).json({ error: 'Please pick a section.' });
     if (price === undefined || price === null || Number.isNaN(Number(price))) {
@@ -118,14 +119,29 @@ app.post('/api/products', requireAuth, async (req, res) => {
     }
 
     const catalog = await readCatalog();
-    if (!catalog.categories.some((c) => c.id === categoryId)) {
+    const category = catalog.categories.find((c) => c.id === categoryId);
+    if (!category) {
       return res.status(400).json({ error: 'That section does not exist.' });
+    }
+
+    let brandName = (brand ?? '').trim();
+    const allowedBrands = category.brands ?? [];
+    if (allowedBrands.length) {
+      if (!brandName) {
+        return res.status(400).json({ error: 'Please pick a brand for this section.' });
+      }
+      const matchedBrand = allowedBrands.find((b) => brandsEqual(b, brandName));
+      if (!matchedBrand) {
+        return res.status(400).json({ error: 'Please pick a brand for this section.' });
+      }
+      brandName = matchedBrand;
     }
 
     const product = {
       id: newProductId(),
       categoryId,
       name: name.trim(),
+      ...(brandName && { brand: brandName }),
       price: Number(price),
       currency,
       description: (description ?? '').trim(),
@@ -142,7 +158,8 @@ app.post('/api/products', requireAuth, async (req, res) => {
 
 app.put('/api/products/:id', requireAuth, async (req, res) => {
   try {
-    const { name, categoryId, price, description, images, currency = 'CNY' } = req.body ?? {};
+    const { name, categoryId, brand, price, description, images, currency = 'CNY' } =
+      req.body ?? {};
     const catalog = await readCatalog();
     const index = catalog.products.findIndex((p) => p.id === req.params.id);
     if (index === -1) return res.status(404).json({ error: 'Item not found.' });
@@ -152,20 +169,104 @@ app.put('/api/products/:id', requireAuth, async (req, res) => {
     }
 
     const existing = catalog.products[index];
+    const nextCategoryId = categoryId ?? existing.categoryId;
+    const category = catalog.categories.find((c) => c.id === nextCategoryId);
+    const allowedBrands = category?.brands ?? [];
+
+    let nextBrand =
+      brand !== undefined ? brand.trim() || undefined : existing.brand;
+
+    if (allowedBrands.length) {
+      if (!nextBrand) {
+        return res.status(400).json({ error: 'Please pick a brand for this section.' });
+      }
+      const matchedBrand = allowedBrands.find((b) => brandsEqual(b, nextBrand));
+      if (!matchedBrand) {
+        return res.status(400).json({ error: 'Please pick a brand for this section.' });
+      }
+      nextBrand = matchedBrand;
+    }
+
     catalog.products[index] = {
       ...existing,
       ...(name !== undefined && { name: name.trim() }),
       ...(categoryId !== undefined && { categoryId }),
+      ...(brand !== undefined && (nextBrand ? { brand: nextBrand } : { brand: undefined })),
       ...(price !== undefined && { price: Number(price) }),
       ...(description !== undefined && { description: description.trim() }),
       ...(images !== undefined && { images }),
       ...(currency !== undefined && { currency }),
     };
 
+    if (brand !== undefined && !nextBrand) {
+      delete catalog.products[index].brand;
+    }
+
     await writeCatalog(catalog);
     res.json(catalog.products[index]);
   } catch {
     res.status(500).json({ error: 'Could not save changes.' });
+  }
+});
+
+function normalizeBrandName(brand) {
+  return String(brand ?? '').trim();
+}
+
+function brandsEqual(a, b) {
+  return normalizeBrandName(a).toLowerCase() === normalizeBrandName(b).toLowerCase();
+}
+
+app.post('/api/categories/:categoryId/brands', requireAuth, async (req, res) => {
+  try {
+    const brandName = normalizeBrandName(req.body?.brand);
+    if (!brandName) {
+      return res.status(400).json({ error: 'Please enter a brand name.' });
+    }
+
+    const catalog = await readCatalog();
+    const category = catalog.categories.find((c) => c.id === req.params.categoryId);
+    if (!category) {
+      return res.status(404).json({ error: 'That section does not exist.' });
+    }
+
+    if (!Array.isArray(category.brands)) category.brands = [];
+    if (category.brands.some((b) => brandsEqual(b, brandName))) {
+      return res.status(400).json({ error: 'This brand already exists in that section.' });
+    }
+
+    category.brands.push(brandName);
+    await writeCatalog(catalog);
+    res.json(category);
+  } catch {
+    res.status(500).json({ error: 'Could not add brand.' });
+  }
+});
+
+app.delete('/api/categories/:categoryId/brands', requireAuth, async (req, res) => {
+  try {
+    const brandName = normalizeBrandName(req.body?.brand);
+    if (!brandName) {
+      return res.status(400).json({ error: 'Please specify which brand to remove.' });
+    }
+
+    const catalog = await readCatalog();
+    const category = catalog.categories.find((c) => c.id === req.params.categoryId);
+    if (!category) {
+      return res.status(404).json({ error: 'That section does not exist.' });
+    }
+
+    const brands = category.brands ?? [];
+    const nextBrands = brands.filter((b) => !brandsEqual(b, brandName));
+    if (nextBrands.length === brands.length) {
+      return res.status(404).json({ error: 'Brand not found in that section.' });
+    }
+
+    category.brands = nextBrands;
+    await writeCatalog(catalog);
+    res.json(category);
+  } catch {
+    res.status(500).json({ error: 'Could not remove brand.' });
   }
 });
 

@@ -324,12 +324,137 @@ textarea {
   color: #fff;
 }
 
+/* Brand manager */
+
+.brand-manager {
+  margin-bottom: 28px;
+  padding: 20px;
+  background: #fff;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow);
+}
+
+.brand-manager-header h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.brand-manager-header p {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  margin-bottom: 16px;
+}
+
+.brand-manager-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.brand-manager-card {
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--color-bg, #f7f5f2);
+  border: 1px solid var(--color-border);
+}
+
+.brand-manager-card-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.brand-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  min-height: 28px;
+}
+
+.brand-manager-empty {
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+}
+
+.brand-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 6px 12px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 99px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.brand-chip-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  transition: background 0.2s, color 0.2s;
+}
+
+.brand-chip-remove:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.brand-add-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.brand-add-input {
+  flex: 1;
+  min-width: 160px;
+}
+
 /* Product list */
 
 .product-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.admin-brand-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-brand-section-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.admin-brand-section-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-brand-section-empty {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  padding: 4px 0 8px;
+}
+
+.admin-product-missing-brand {
+  color: #b45309;
+  font-weight: 600;
 }
 
 .admin-product-card {
