@@ -243,6 +243,43 @@ app.post('/api/categories/:categoryId/brands', requireAuth, async (req, res) => 
   }
 });
 
+app.put('/api/categories/:categoryId/brands/order', requireAuth, async (req, res) => {
+  try {
+    const { brands } = req.body ?? {};
+    if (!Array.isArray(brands)) {
+      return res.status(400).json({ error: 'Brand order must be a list.' });
+    }
+
+    const catalog = await readCatalog();
+    const category = catalog.categories.find((c) => c.id === req.params.categoryId);
+    if (!category) {
+      return res.status(404).json({ error: 'That section does not exist.' });
+    }
+
+    const existing = category.brands ?? [];
+    if (brands.length !== existing.length) {
+      return res.status(400).json({ error: 'Brand list does not match this section.' });
+    }
+
+    const reordered = brands.map((name) => {
+      const trimmed = normalizeBrandName(name);
+      const match = existing.find((b) => brandsEqual(b, trimmed));
+      if (!match) return null;
+      return match;
+    });
+
+    if (reordered.some((b) => !b)) {
+      return res.status(400).json({ error: 'Brand list does not match this section.' });
+    }
+
+    category.brands = reordered;
+    await writeCatalog(catalog);
+    res.json(category);
+  } catch {
+    res.status(500).json({ error: 'Could not reorder brands.' });
+  }
+});
+
 app.delete('/api/categories/:categoryId/brands', requireAuth, async (req, res) => {
   try {
     const brandName = normalizeBrandName(req.body?.brand);

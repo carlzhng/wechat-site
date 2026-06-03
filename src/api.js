@@ -116,3 +116,12 @@ export async function removeCategoryBrand(categoryId, brand) {
   });
   return parseJson(res);
 }
+
+export async function reorderCategoryBrands(categoryId, brands) {
+  const res = await apiFetch(`${API}/categories/${categoryId}/brands/order`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ brands }),
+  });
+  return parseJson(res);
+}
