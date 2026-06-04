@@ -28,7 +28,7 @@ async function apiFetch(url, options = {}) {
     return await fetch(url, { credentials: 'include', ...options });
   } catch {
     throw new Error(
-      'Cannot reach the store server. Run "npm run dev" and open http://localhost:3000/admin.html'
+      'Cannot reach the store server. For local dev, run "npm run dev" and open /admin.html on the same host.'
     );
   }
 }

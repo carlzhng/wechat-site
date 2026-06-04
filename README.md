@@ -28,9 +28,10 @@ Changes save immediately and appear on the store for customers.
 
 **Yes.** Local `npm run dev` is only for development on your computer.
 
-For daily use, deploy the full app once to a cloud host (Render, Railway, a VPS, etc.) with HTTPS. Mom then opens `https://your-domain.com/admin.html` in a browser—no terminal, no npm.
+For daily use, deploy once to **Vercel** (recommended) or another Node host with HTTPS. Mom then opens `https://your-domain.com/admin.html` in a browser—no terminal, no npm.
 
-GitHub Pages **cannot** run the admin (read-only store only). See **[docs/HOSTING-FOR-ADMIN.md](docs/HOSTING-FOR-ADMIN.md)** for a step-by-step hosting guide.
+- **Vercel (store + admin):** **[docs/HOSTING-VERCEL.md](docs/HOSTING-VERCEL.md)**
+- **GitHub Pages:** read-only store only (no admin)
 
 ---
 
@@ -101,19 +102,27 @@ Then open `http://localhost:4173/wechat-site/`
 
 **Note:** Styles live in `src/styles/main.css` during development. The live site uses bundled CSS from the build (e.g. `docs/assets/main-*.css`).
 
-### 5. Deploy for WeChat
+### 5. Deploy to Vercel (recommended for WeChat)
 
-WeChat requires HTTPS. Build and run on a server:
+WeChat requires HTTPS. Vercel provides HTTPS, the guest store, and the admin API in one deployment.
+
+See **[docs/HOSTING-VERCEL.md](docs/HOSTING-VERCEL.md)** for the full checklist (Blob storage, env vars, custom domain).
+
+Quick summary:
+
+1. Import the repo in Vercel (uses `vercel.json` → `npm run build:vercel`, output `dist`)
+2. Add a **Blob** store in the Vercel project
+3. Set `ADMIN_PASSWORD` and `SESSION_SECRET` in environment variables
+4. Deploy — store at `/`, admin at `/admin.html`
+
+### 6. Deploy on a Node server (alternative)
 
 ```bash
 npm run build
 npm start
 ```
 
-Deploy to any Node.js host (Railway, Render, a VPS, etc.). Make sure:
-
-- The `data/` folder and `uploads/` folder persist (they hold your catalog and photos)
-- Your `.env` file is set on the server with a strong `ADMIN_PASSWORD`
+Uses `data/catalog.json` and `uploads/` on disk. Make sure those folders persist and `.env` has a strong `ADMIN_PASSWORD`.
 
 ---
 
