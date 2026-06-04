@@ -3,12 +3,8 @@ import { createApp } from './app.js';
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'changeme';
 const isProd = process.env.NODE_ENV === 'production';
-const isVercel = process.env.VERCEL === '1';
 
 const app = await (async () => {
-  if (isVercel) {
-    return createApp({ serveStatic: false });
-  }
   if (isProd) {
     return createApp({ serveStatic: true });
   }
@@ -21,14 +17,10 @@ const app = await (async () => {
   });
 })();
 
-export default app;
-
-if (!isVercel) {
-  app.listen(PORT, () => {
-    console.log(`Store running at http://localhost:${PORT}`);
-    console.log(`Admin panel at http://localhost:${PORT}/admin.html`);
-    if (ADMIN_PASSWORD === 'changeme') {
-      console.warn('WARNING: Set ADMIN_PASSWORD in a .env file before going live!');
-    }
-  });
-}
+app.listen(PORT, () => {
+  console.log(`Store running at http://localhost:${PORT}`);
+  console.log(`Admin panel at http://localhost:${PORT}/admin.html`);
+  if (ADMIN_PASSWORD === 'changeme') {
+    console.warn('WARNING: Set ADMIN_PASSWORD in a .env file before going live!');
+  }
+});
