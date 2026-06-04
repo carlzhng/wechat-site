@@ -50,6 +50,12 @@ function brandsEqual(a, b) {
   return normalizeBrandName(a).toLowerCase() === normalizeBrandName(b).toLowerCase();
 }
 
+function sendApiError(res, err, fallback) {
+  console.error(err);
+  const message = err instanceof Error && err.message ? err.message : fallback;
+  res.status(500).json({ error: message });
+}
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 8 * 1024 * 1024 },
@@ -65,6 +71,26 @@ export async function createApp(options = {}) {
   await ensureUploadsDir();
 
   const app = express();
+  app.set('trust proxy', 1);
+
+  // Vercel rewrites can leave req.url as "/api" while originalUrl keeps "/api/products".
+  if (process.env.VERCEL === '1') {
+    app.use((req, _res, next) => {
+      const originalPath = (req.originalUrl || '').split('?')[0];
+      const currentPath = (req.url || '').split('?')[0];
+      if (
+        originalPath.startsWith('/api/') &&
+        (currentPath === '/api' || currentPath === '/api/')
+      ) {
+        const query = req.originalUrl?.includes('?')
+          ? req.originalUrl.slice(req.originalUrl.indexOf('?'))
+          : '';
+        req.url = originalPath + query;
+      }
+      next();
+    });
+  }
+
   app.use(express.json({ limit: '2mb' }));
   app.use(cookieParser());
 
@@ -75,8 +101,8 @@ export async function createApp(options = {}) {
   app.get('/api/catalog', async (_req, res) => {
     try {
       res.json(await readCatalog());
-    } catch {
-      res.status(500).json({ error: 'Could not load store catalog.' });
+    } catch (err) {
+      sendApiError(res, err, 'Could not load store catalog.');
     }
   });
 
@@ -113,8 +139,8 @@ export async function createApp(options = {}) {
       try {
         const url = await saveUploadedImage(req.file);
         res.json({ url });
-      } catch {
-        res.status(500).json({ error: 'Upload failed.' });
+      } catch (err) {
+        sendApiError(res, err, 'Upload failed.');
       }
     });
   });
@@ -162,8 +188,8 @@ export async function createApp(options = {}) {
       catalog.products.push(product);
       await writeCatalog(catalog);
       res.json(product);
-    } catch {
-      res.status(500).json({ error: 'Could not add item.' });
+    } catch (err) {
+      sendApiError(res, err, 'Could not add item.');
     }
   });
 
@@ -215,8 +241,8 @@ export async function createApp(options = {}) {
 
       await writeCatalog(catalog);
       res.json(catalog.products[index]);
-    } catch {
-      res.status(500).json({ error: 'Could not save changes.' });
+    } catch (err) {
+      sendApiError(res, err, 'Could not save changes.');
     }
   });
 
@@ -241,8 +267,8 @@ export async function createApp(options = {}) {
       category.brands.push(brandName);
       await writeCatalog(catalog);
       res.json(category);
-    } catch {
-      res.status(500).json({ error: 'Could not add brand.' });
+    } catch (err) {
+      sendApiError(res, err, 'Could not add brand.');
     }
   });
 
@@ -278,8 +304,8 @@ export async function createApp(options = {}) {
       category.brands = reordered;
       await writeCatalog(catalog);
       res.json(category);
-    } catch {
-      res.status(500).json({ error: 'Could not reorder brands.' });
+    } catch (err) {
+      sendApiError(res, err, 'Could not reorder brands.');
     }
   });
 
@@ -305,8 +331,8 @@ export async function createApp(options = {}) {
       category.brands = nextBrands;
       await writeCatalog(catalog);
       res.json(category);
-    } catch {
-      res.status(500).json({ error: 'Could not remove brand.' });
+    } catch (err) {
+      sendApiError(res, err, 'Could not remove brand.');
     }
   });
 
@@ -320,8 +346,8 @@ export async function createApp(options = {}) {
       }
       await writeCatalog(catalog);
       res.json({ ok: true });
-    } catch {
-      res.status(500).json({ error: 'Could not remove item.' });
+    } catch (err) {
+      sendApiError(res, err, 'Could not remove item.');
     }
   });
 

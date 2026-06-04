@@ -3,8 +3,22 @@ const STATIC_CATALOG = import.meta.env.VITE_STATIC_CATALOG === 'true';
 const STATIC_CATALOG_URL = `${import.meta.env.BASE_URL}data/catalog.json`;
 
 async function parseJson(res) {
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+  const text = await res.text();
+  let data = {};
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      if (!res.ok) {
+        throw new Error(
+          res.status === 404
+            ? 'Store API not found. Use your Vercel site URL for admin, not GitHub Pages.'
+            : `Server error (${res.status}). Check Vercel env vars and Blob storage.`
+        );
+      }
+    }
+  }
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status}).`);
   return data;
 }
 
