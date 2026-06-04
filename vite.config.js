@@ -4,7 +4,7 @@ import { resolve } from 'path';
 const isGitHubPages = process.env.GITHUB_PAGES === 'true';
 
 export default defineConfig({
-  base: isGitHubPages ? '/wechat-site/' : './',
+  base: isGitHubPages ? '/wechat-site/' : '/',
   build: {
     outDir: 'dist',
     rollupOptions: {
