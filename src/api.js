@@ -26,7 +26,7 @@ function resolveCatalogAssets(catalog) {
   const base = import.meta.env.BASE_URL;
   return {
     ...catalog,
-    products: catalog.products.map((product) => ({
+    products: (catalog.products ?? []).map((product) => ({
       ...product,
       images: (product.images ?? []).map((src) => {
         if (!src || src.startsWith('http')) return src;
@@ -54,13 +54,18 @@ export async function fetchCatalog() {
     return resolveCatalogAssets(catalog);
   }
 
-  try {
-    const res = await apiFetch(`${API}/catalog`);
-    return parseJson(res);
-  } catch {
+  async function loadStaticCatalog() {
     const res = await fetch(STATIC_CATALOG_URL);
     const catalog = await parseJson(res);
     return resolveCatalogAssets(catalog);
+  }
+
+  try {
+    const res = await apiFetch(`${API}/catalog`);
+    const catalog = await parseJson(res);
+    return resolveCatalogAssets(catalog);
+  } catch {
+    return loadStaticCatalog();
   }
 }
 
