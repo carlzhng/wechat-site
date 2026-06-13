@@ -94,6 +94,18 @@ async function loadCatalog() {
   renderDashboard();
 }
 
+function upsertProduct(product) {
+  const index = state.products.findIndex((p) => p.id === product.id);
+  if (index === -1) state.products.push(product);
+  else state.products[index] = product;
+  renderDashboard();
+}
+
+function removeProduct(id) {
+  state.products = state.products.filter((p) => p.id !== id);
+  renderDashboard();
+}
+
 function filteredProducts() {
   if (state.activeCategory === 'all') return state.products;
   return state.products.filter((p) => p.categoryId === state.activeCategory);
@@ -569,13 +581,14 @@ async function handleSave(e) {
 
   try {
     if (state.editingId) {
-      await updateProduct(state.editingId, payload);
+      const updated = await updateProduct(state.editingId, payload);
+      upsertProduct(updated);
       showToast('已更新商品，顾客现在就能看到。');
     } else {
-      await createProduct(payload);
+      const created = await createProduct(payload);
+      upsertProduct(created);
       showToast('已新增商品！');
     }
-    await loadCatalog();
     closeEditor();
   } catch (err) {
     showError(els.editError, err.message);
@@ -598,8 +611,8 @@ async function handleDelete() {
 
   try {
     await deleteProduct(state.editingId);
+    removeProduct(state.editingId);
     showToast('已删除商品。');
-    await loadCatalog();
     closeEditor();
   } catch (err) {
     showError(els.editError, err.message);

@@ -100,6 +100,7 @@ export async function createApp(options = {}) {
 
   app.get('/api/catalog', async (_req, res) => {
     try {
+      res.set('Cache-Control', 'no-store');
       res.json(await readCatalog());
     } catch (err) {
       sendApiError(res, err, 'Could not load store catalog.');

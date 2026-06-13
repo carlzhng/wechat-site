@@ -39,7 +39,7 @@ function resolveCatalogAssets(catalog) {
 
 async function apiFetch(url, options = {}) {
   try {
-    return await fetch(url, { credentials: 'include', ...options });
+    return await fetch(url, { credentials: 'include', cache: 'no-store', ...options });
   } catch {
     throw new Error(
       'Cannot reach the store server. For local dev, run "npm run dev" and open /admin.html on the same host.'
