@@ -188,7 +188,7 @@ export async function createApp(options = {}) {
 
       catalog.products.push(product);
       await writeCatalog(catalog);
-      res.json(product);
+      res.json({ product, catalog });
     } catch (err) {
       sendApiError(res, err, 'Could not add item.');
     }
@@ -241,7 +241,7 @@ export async function createApp(options = {}) {
       }
 
       await writeCatalog(catalog);
-      res.json(catalog.products[index]);
+      res.json({ product: catalog.products[index], catalog });
     } catch (err) {
       sendApiError(res, err, 'Could not save changes.');
     }
@@ -346,7 +346,7 @@ export async function createApp(options = {}) {
         return res.status(404).json({ error: 'Item not found.' });
       }
       await writeCatalog(catalog);
-      res.json({ ok: true });
+      res.json({ ok: true, catalog });
     } catch (err) {
       sendApiError(res, err, 'Could not remove item.');
     }

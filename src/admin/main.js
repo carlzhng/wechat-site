@@ -94,15 +94,9 @@ async function loadCatalog() {
   renderDashboard();
 }
 
-function upsertProduct(product) {
-  const index = state.products.findIndex((p) => p.id === product.id);
-  if (index === -1) state.products.push(product);
-  else state.products[index] = product;
-  renderDashboard();
-}
-
-function removeProduct(id) {
-  state.products = state.products.filter((p) => p.id !== id);
+function applyCatalog(catalog) {
+  state.categories = catalog.categories;
+  state.products = catalog.products;
   renderDashboard();
 }
 
@@ -581,12 +575,12 @@ async function handleSave(e) {
 
   try {
     if (state.editingId) {
-      const updated = await updateProduct(state.editingId, payload);
-      upsertProduct(updated);
+      const { catalog } = await updateProduct(state.editingId, payload);
+      applyCatalog(catalog);
       showToast('已更新商品，顾客现在就能看到。');
     } else {
-      const created = await createProduct(payload);
-      upsertProduct(created);
+      const { catalog } = await createProduct(payload);
+      applyCatalog(catalog);
       showToast('已新增商品！');
     }
     closeEditor();
@@ -610,11 +604,17 @@ async function handleDelete() {
   if (!confirmed) return;
 
   try {
-    await deleteProduct(state.editingId);
-    removeProduct(state.editingId);
+    const { catalog } = await deleteProduct(state.editingId);
+    applyCatalog(catalog);
     showToast('已删除商品。');
     closeEditor();
   } catch (err) {
+    if (/not found/i.test(err.message)) {
+      await loadCatalog();
+      showToast('商品列表已刷新。');
+      closeEditor();
+      return;
+    }
     showError(els.editError, err.message);
   }
 }
