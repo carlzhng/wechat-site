@@ -506,6 +506,42 @@ textarea {
   border: 1px solid var(--color-border);
 }
 
+.admin-product-card.is-dragging {
+  opacity: 0.55;
+}
+
+.admin-product-card.is-drag-over {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(91, 33, 182, 0.15);
+}
+
+.admin-product-handle {
+  flex-shrink: 0;
+  width: 28px;
+  text-align: center;
+  font-size: 1.125rem;
+  color: var(--color-muted);
+  cursor: grab;
+  user-select: none;
+  line-height: 1;
+}
+
+.admin-product-handle:active {
+  cursor: grabbing;
+}
+
+.admin-product-sort-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.product-sort-hint {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  margin: 0 0 12px;
+}
+
 .admin-product-thumb {
   width: 72px;
   height: 72px;

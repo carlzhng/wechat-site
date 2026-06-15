@@ -144,3 +144,14 @@ export async function reorderCategoryBrands(categoryId, brands) {
   });
   return parseJson(res);
 }
+
+export async function reorderProducts(categoryId, productIds, brand) {
+  const body = { categoryId, productIds };
+  if (brand !== undefined) body.brand = brand;
+  const res = await apiFetch(`${API}/products/order`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return parseJson(res);
+}
