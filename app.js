@@ -194,6 +194,68 @@ export async function createApp(options = {}) {
     }
   });
 
+  app.put('/api/products/order', requireAuth, async (req, res) => {
+    try {
+      const { categoryId, brand, productIds } = req.body ?? {};
+      if (!categoryId) {
+        return res.status(400).json({ error: 'Please pick a section.' });
+      }
+      if (!Array.isArray(productIds)) {
+        return res.status(400).json({ error: 'Product order must be a list.' });
+      }
+
+      const catalog = await readCatalog();
+      const category = catalog.categories.find((c) => c.id === categoryId);
+      if (!category) {
+        return res.status(404).json({ error: 'That section does not exist.' });
+      }
+
+      const allowedBrands = category.brands ?? [];
+      const brandKey = brand === undefined || brand === null ? null : String(brand);
+
+      function inScope(product) {
+        if (product.categoryId !== categoryId) return false;
+        if (!allowedBrands.length) return true;
+        if (brandKey === '未分配品牌') {
+          if (!product.brand) return true;
+          return !allowedBrands.some((b) => brandsEqual(b, product.brand));
+        }
+        if (brandKey) {
+          return Boolean(product.brand && brandsEqual(product.brand, brandKey));
+        }
+        return true;
+      }
+
+      const scoped = catalog.products.filter(inScope);
+      if (productIds.length !== scoped.length) {
+        return res.status(400).json({ error: 'Product list does not match this section.' });
+      }
+
+      const byId = new Map(scoped.map((p) => [p.id, p]));
+      const reordered = productIds.map((id) => {
+        const product = byId.get(id);
+        if (!product) return null;
+        return product;
+      });
+
+      if (reordered.some((p) => !p)) {
+        return res.status(400).json({ error: 'Product list does not match this section.' });
+      }
+
+      const scopedIds = new Set(scoped.map((p) => p.id));
+      let index = 0;
+      catalog.products = catalog.products.map((product) => {
+        if (!scopedIds.has(product.id)) return product;
+        return reordered[index++];
+      });
+
+      await writeCatalog(catalog);
+      res.json({ catalog });
+    } catch (err) {
+      sendApiError(res, err, 'Could not reorder products.');
+    }
+  });
+
   app.put('/api/products/:id', requireAuth, async (req, res) => {
     try {
       const { name, categoryId, brand, price, description, images, currency = 'CNY' } =

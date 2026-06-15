@@ -10,6 +10,7 @@ import {
   addCategoryBrand,
   removeCategoryBrand,
   reorderCategoryBrands,
+  reorderProducts,
 } from '../api.js';
 
 const state = {
@@ -150,16 +151,20 @@ function populateBrandSelect(categoryId, selectedBrand = '') {
   ].join('');
 }
 
-function renderAdminProductCard(product) {
+function renderAdminProductCard(product, { sortable = false } = {}) {
   const thumb = product.images[0]
     ? `<img src="${product.images[0]}" alt="" />`
     : `<div class="no-photo">暂无图片</div>`;
   const brandLabel = product.brand
     ? product.brand
     : '<span class="admin-product-missing-brand">未分配品牌</span>';
+  const handle = sortable
+    ? `<span class="admin-product-handle" draggable="true" aria-label="拖动以排序" title="拖动排序">⠿</span>`
+    : '';
 
   return `
-    <article class="admin-product-card">
+    <article class="admin-product-card" data-id="${product.id}">
+      ${handle}
       <div class="admin-product-thumb">${thumb}</div>
       <div class="admin-product-info">
         <p class="admin-product-section">${getCategoryName(product.categoryId)} · ${brandLabel}</p>
@@ -204,11 +209,30 @@ function renderCategoryTabs() {
   });
 }
 
+async function saveProductOrder(categoryId, brand, productIds) {
+  const { catalog } = await reorderProducts(categoryId, productIds, brand);
+  applyCatalog(catalog);
+}
+
+function renderProductSortList(categoryId, brand, products, sortable) {
+  const brandAttr = brand !== undefined ? ` data-brand="${encodeBrandAttr(brand)}"` : '';
+  return `
+    <div class="admin-product-sort-list" data-category="${categoryId}"${brandAttr}>
+      ${products.map((p) => renderAdminProductCard(p, { sortable })).join('')}
+    </div>
+  `;
+}
+
 function renderProductList() {
   const items = filteredProducts();
+  const sortable = state.activeCategory !== 'all';
+  const sortHint = sortable
+    ? '<p class="product-sort-hint">拖动商品左侧 ⠿ 可调整在店铺中的显示顺序。</p>'
+    : '<p class="product-sort-hint">选择具体分类后可拖动商品调整显示顺序。</p>';
 
   if (items.length === 0) {
     els.productList.innerHTML = `
+      ${sortHint}
       <div class="empty-list">
         <p>这里还没有商品。</p>
         <button class="btn btn-primary" type="button" id="empty-add-btn">+ 添加第一件商品</button>
@@ -235,30 +259,113 @@ function renderProductList() {
         sections.push({ brand: '未分配品牌', products: otherProducts });
       }
 
-      els.productList.innerHTML = sections
-        .map(
-          ({ brand, products }) => `
+      els.productList.innerHTML =
+        sortHint +
+        sections
+          .map(
+            ({ brand, products }) => `
         <section class="admin-brand-section">
           <h3 class="admin-brand-section-title">${brand}</h3>
-          <div class="admin-brand-section-list">
-            ${products.length ? products.map(renderAdminProductCard).join('') : '<p class="admin-brand-section-empty">该品牌暂无商品</p>'}
-          </div>
+          ${
+            products.length
+              ? renderProductSortList(state.activeCategory, brand, products, sortable)
+              : '<p class="admin-brand-section-empty">该品牌暂无商品</p>'
+          }
         </section>
       `
-        )
-        .join('');
+          )
+          .join('');
       bindEditProductButtons();
+      if (sortable) bindProductDragAndDrop();
       return;
     }
   }
 
-  els.productList.innerHTML = items.map(renderAdminProductCard).join('');
+  if (state.activeCategory !== 'all') {
+    els.productList.innerHTML =
+      sortHint + renderProductSortList(state.activeCategory, undefined, items, sortable);
+  } else {
+    els.productList.innerHTML =
+      sortHint + items.map((p) => renderAdminProductCard(p, { sortable: false })).join('');
+  }
   bindEditProductButtons();
+  if (sortable) bindProductDragAndDrop();
 }
 
 function bindEditProductButtons() {
   els.productList.querySelectorAll('.edit-product-btn').forEach((btn) => {
     btn.addEventListener('click', () => openEditor(btn.dataset.id));
+  });
+}
+
+function bindProductDragAndDrop() {
+  let draggedId = null;
+  let draggedList = null;
+
+  els.productList.querySelectorAll('.admin-product-sort-list').forEach((list) => {
+    const categoryId = list.dataset.category;
+    const brand = list.dataset.brand !== undefined ? decodeBrandAttr(list.dataset.brand) : undefined;
+
+    list.querySelectorAll('.admin-product-card').forEach((card) => {
+      const handle = card.querySelector('.admin-product-handle');
+      if (!handle) return;
+
+      handle.addEventListener('dragstart', (e) => {
+        draggedId = card.dataset.id;
+        draggedList = list;
+        card.classList.add('is-dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', draggedId);
+        if (e.dataTransfer.setDragImage) {
+          e.dataTransfer.setDragImage(card, 24, 24);
+        }
+      });
+
+      handle.addEventListener('dragend', () => {
+        card.classList.remove('is-dragging');
+        list.querySelectorAll('.admin-product-card').forEach((el) => el.classList.remove('is-drag-over'));
+        draggedId = null;
+        draggedList = null;
+      });
+
+      card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (draggedList !== list) return;
+        list.querySelectorAll('.admin-product-card').forEach((el) => el.classList.remove('is-drag-over'));
+        card.classList.add('is-drag-over');
+      });
+
+      card.addEventListener('dragleave', () => {
+        card.classList.remove('is-drag-over');
+      });
+
+      card.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        card.classList.remove('is-drag-over');
+        if (draggedList !== list || !draggedId) return;
+
+        const targetId = card.dataset.id;
+        if (draggedId === targetId) return;
+
+        const cards = [...list.querySelectorAll('.admin-product-card')];
+        const order = cards.map((el) => el.dataset.id);
+        const from = order.indexOf(draggedId);
+        const to = order.indexOf(targetId);
+        if (from < 0 || to < 0) return;
+
+        order.splice(from, 1);
+        order.splice(to, 0, draggedId);
+
+        try {
+          await saveProductOrder(categoryId, brand, order);
+          showToast('已更新商品顺序。');
+        } catch (err) {
+          showToast(err.message);
+          renderProductList();
+        }
+      });
+    });
   });
 }
 
