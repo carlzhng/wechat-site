@@ -575,12 +575,19 @@ function populateCategorySelect() {
 }
 
 function renderPhotoGrid() {
+  const canReorder = state.draftImages.length > 1;
+
   els.photoGrid.innerHTML = state.draftImages
     .map(
       (url, i) => `
-    <div class="photo-thumb ${i === 0 ? 'is-cover' : ''}">
+    <div class="photo-thumb ${i === 0 ? 'is-cover' : ''}" data-index="${i}">
       ${i === 0 ? '<span class="cover-badge">Cover</span>' : ''}
-      <img src="${url}" alt="" />
+      ${
+        canReorder
+          ? '<span class="photo-handle" draggable="true" aria-label="拖动以排序" title="拖动排序">⠿</span>'
+          : ''
+      }
+      <img src="${url}" alt="" draggable="false" />
       <button class="photo-remove" data-index="${i}" type="button" aria-label="Remove photo">✕</button>
     </div>
   `
@@ -590,6 +597,59 @@ function renderPhotoGrid() {
   els.photoGrid.querySelectorAll('.photo-remove').forEach((btn) => {
     btn.addEventListener('click', () => {
       state.draftImages.splice(Number(btn.dataset.index), 1);
+      renderPhotoGrid();
+    });
+  });
+
+  if (canReorder) bindPhotoDragAndDrop();
+}
+
+function bindPhotoDragAndDrop() {
+  let draggedIndex = null;
+
+  els.photoGrid.querySelectorAll('.photo-thumb').forEach((thumb) => {
+    const handle = thumb.querySelector('.photo-handle');
+    if (!handle) return;
+
+    handle.addEventListener('dragstart', (e) => {
+      draggedIndex = Number(thumb.dataset.index);
+      thumb.classList.add('is-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(draggedIndex));
+      if (e.dataTransfer.setDragImage) {
+        e.dataTransfer.setDragImage(thumb, 44, 44);
+      }
+    });
+
+    handle.addEventListener('dragend', () => {
+      thumb.classList.remove('is-dragging');
+      els.photoGrid.querySelectorAll('.photo-thumb').forEach((el) => el.classList.remove('is-drag-over'));
+      draggedIndex = null;
+    });
+
+    thumb.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      els.photoGrid.querySelectorAll('.photo-thumb').forEach((el) => el.classList.remove('is-drag-over'));
+      thumb.classList.add('is-drag-over');
+    });
+
+    thumb.addEventListener('dragleave', () => {
+      thumb.classList.remove('is-drag-over');
+    });
+
+    thumb.addEventListener('drop', (e) => {
+      e.preventDefault();
+      thumb.classList.remove('is-drag-over');
+      if (draggedIndex === null) return;
+
+      const targetIndex = Number(thumb.dataset.index);
+      if (draggedIndex === targetIndex) return;
+
+      const images = [...state.draftImages];
+      const [moved] = images.splice(draggedIndex, 1);
+      images.splice(targetIndex, 0, moved);
+      state.draftImages = images;
       renderPhotoGrid();
     });
   });
